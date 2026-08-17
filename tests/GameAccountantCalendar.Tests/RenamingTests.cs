@@ -194,6 +194,109 @@ public class RenamingTests
         Assert.Contains("no week", error.Message);
     }
 
+    private static readonly string[] FiveFestivals =
+    [
+        "Sansculottides", "Vertu", "Genie", "Travail", "Opinion",
+    ];
+
+    [Fact]
+    public void FestivalsCanBeRenamedWithoutTouchingTheMonths()
+    {
+        var renamed = Calendar.WithFestivalNames(FiveFestivals);
+
+        Assert.Equal(
+            FiveFestivals,
+            renamed.Months.Where(m => m.IsHoliday).Select(m => m.Name));
+
+        Assert.Equal(
+            Calendar.Months.Where(m => !m.IsHoliday).Select(m => m.Name),
+            renamed.Months.Where(m => !m.IsHoliday).Select(m => m.Name));
+
+        Assert.Equal("Sansculottides", renamed.Month(3).Name);
+        Assert.Equal("Frostwane", renamed.Month(1).Name);
+    }
+
+    [Fact]
+    public void RenamedFestivalsKeepTheirDaysAndStayOutsideTheWeek()
+    {
+        var renamed = Calendar.WithFestivalNames(FiveFestivals);
+        var festival = renamed.Date(1999, 3, 1);
+
+        Assert.True(festival.IsHoliday);
+        Assert.Null(festival.Weekday);
+        Assert.Equal("Sansculottides 1999", festival.ToString("d"));
+        Assert.Equal(Calendar.Date(1999, 3, 1).Ticks, festival.Ticks);
+        Assert.Equal(
+            Calendar.Months.Select(m => (m.Number, m.StartDay, m.EndDay, m.IsHoliday)),
+            renamed.Months.Select(m => (m.Number, m.StartDay, m.EndDay, m.IsHoliday)));
+    }
+
+    [Fact]
+    public void MonthsAndFestivalsCanBeRenamedIndependently()
+    {
+        var renamed = Calendar
+            .WithMonthNames(TwelveMonths)
+            .WithFestivalNames(FiveFestivals);
+
+        Assert.Equal("Nivose", renamed.Month(1).Name);
+        Assert.Equal("Sansculottides", renamed.Month(3).Name);
+        Assert.Equal("Frimaire", renamed.Month(17).Name);
+
+        // Order does not matter; neither call disturbs the other's entries.
+        var reversed = Calendar
+            .WithFestivalNames(FiveFestivals)
+            .WithMonthNames(TwelveMonths);
+
+        Assert.Equal(
+            renamed.Months.Select(m => m.Name),
+            reversed.Months.Select(m => m.Name));
+    }
+
+    [Fact]
+    public void FestivalCountNamesTheEntriesMonthCountLeavesOut()
+    {
+        Assert.Equal(12, Calendar.MonthCount);
+        Assert.Equal(5, Calendar.FestivalCount);
+        Assert.Equal(Calendar.Months.Count, Calendar.MonthCount + Calendar.FestivalCount);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(4)]
+    [InlineData(6)]
+    [InlineData(12)]
+    public void TheWrongNumberOfFestivalNamesIsRefused(int count)
+    {
+        var names = Enumerable.Range(1, count).Select(i => $"F{i}").ToArray();
+
+        var error = Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithFestivalNames(names));
+        Assert.Contains("5 festivals", error.Message);
+    }
+
+    [Fact]
+    public void ACalendarWithNoFestivalsTakesNoFestivalNames()
+    {
+        var plain = new GameCalendarBuilder("Plain")
+            .WithWeekdays("A", "B", "C")
+            .AddMonths(30, "One", "Two", "Three")
+            .Build();
+
+        Assert.Equal(0, plain.FestivalCount);
+        Assert.Equal(3, plain.WithFestivalNames().Months.Count);
+
+        var error = Assert.Throws<CalendarValidationException>(() => _ = plain.WithFestivalNames("Feast"));
+        Assert.Contains("no festivals", error.Message);
+    }
+
+    [Fact]
+    public void BlankFestivalNamesAreRefused()
+    {
+        var names = (string[])FiveFestivals.Clone();
+        names[2] = " ";
+
+        Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithFestivalNames(names));
+    }
+
     [Fact]
     public void TheLabelCanBeChangedOnItsOwn()
     {
@@ -216,10 +319,12 @@ public class RenamingTests
         var renamed = Calendar
             .WithLabel("Revolutionary Calendar")
             .WithMonthNames(TwelveMonths)
+            .WithFestivalNames(FiveFestivals)
             .WithWeekdayNames(SevenDays);
 
         Assert.Equal("Revolutionary Calendar", renamed.Label);
         Assert.Equal("Nivose", renamed.Month(1).Name);
+        Assert.Equal("Sansculottides", renamed.Month(3).Name);
         Assert.Equal("Primus", renamed.Date(1, 1, 1).Weekday?.Name);
         Assert.Equal(Calendar.Id, renamed.Id);
         Assert.Equal(Calendar.DaysInYear, renamed.DaysInYear);

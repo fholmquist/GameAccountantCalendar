@@ -229,6 +229,9 @@ public sealed class GameCalendar
     /// <summary>Ordinary months in a year, not counting intercalary festivals (<c>num_months</c>).</summary>
     public int MonthCount => _countedMonths.Length;
 
+    /// <summary>Intercalary festivals in a year — the entries <see cref="MonthCount"/> leaves out.</summary>
+    public int FestivalCount => _months.Length - _countedMonths.Length;
+
     /// <summary>Minutes in a day.</summary>
     public int MinutesInDay => HoursInDay * MinutesInHour;
 
@@ -348,7 +351,8 @@ public sealed class GameCalendar
     /// <param name="names">
     /// One name per month, in order. Pass <see cref="MonthCount"/> names to rename only the ordinary
     /// months and leave the festivals as they are, or <see cref="Months"/>.Count names to rename every
-    /// entry including the festivals. Where a calendar has no festivals the two counts coincide.
+    /// entry in year order, festivals included. Where a calendar has no festivals the two counts
+    /// coincide. To rename the festivals on their own, use <see cref="WithFestivalNames"/>.
     /// </param>
     /// <remarks>
     /// Dates do not carry across on their own, because a <see cref="GameDate"/> belongs to the exact
@@ -371,7 +375,7 @@ public sealed class GameCalendar
             throw new CalendarValidationException(
                 $"Calendar '{Label}' was given {names.Length} month names. It needs either " +
                 $"{_countedMonths.Length} (its ordinary months) or {_months.Length} (those plus its " +
-                $"{_months.Length - _countedMonths.Length} festivals).");
+                $"{FestivalCount} festivals). To rename the festivals alone, use WithFestivalNames.");
         }
 
         var renamed = new CalendarMonth[_months.Length];
@@ -382,6 +386,43 @@ public sealed class GameCalendar
             string name = everyEntry ? names[i]
                 : month.IsHoliday ? month.Name
                 : names[next++];
+
+            renamed[i] = new CalendarMonth(
+                month.Number, name, month.StartDay, month.EndDay, month.AltName, month.IsHoliday, month.StartingWeekday);
+        }
+
+        return WithParts(Label, renamed, _weekdays);
+    }
+
+    /// <summary>
+    /// Returns a copy of this calendar with its intercalary festivals renamed and its ordinary months
+    /// left alone. The year's shape is untouched, so the festivals keep their days and stay outside the
+    /// weekday cycle.
+    /// </summary>
+    /// <param name="names">
+    /// One name per festival, in year order. Must match <see cref="FestivalCount"/> exactly.
+    /// </param>
+    /// <exception cref="CalendarValidationException">
+    /// The wrong number of names was given, or one of them is blank.
+    /// </exception>
+    public GameCalendar WithFestivalNames(params string[] names)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+
+        if (names.Length != FestivalCount)
+        {
+            throw new CalendarValidationException(
+                FestivalCount == 0
+                    ? $"Calendar '{Label}' has no festivals, so it takes no festival names, but {names.Length} were given."
+                    : $"Calendar '{Label}' has {FestivalCount} festivals, but {names.Length} names were given.");
+        }
+
+        var renamed = new CalendarMonth[_months.Length];
+        int next = 0;
+        for (int i = 0; i < _months.Length; i++)
+        {
+            var month = _months[i];
+            string name = month.IsHoliday ? names[next++] : month.Name;
 
             renamed[i] = new CalendarMonth(
                 month.Number, name, month.StartDay, month.EndDay, month.AltName, month.IsHoliday, month.StartingWeekday);

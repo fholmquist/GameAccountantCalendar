@@ -84,17 +84,24 @@ var revolutionary = SampleCalendars.CommonReckoning
     .WithLabel("Revolutionary Calendar")
     .WithMonthNames("Nivose", "Pluviose", "Ventose", "Germinal", "Floreal", "Prairial",
                     "Messidor", "Thermidor", "Fructidor", "Vendemiaire", "Brumaire", "Frimaire")
+    .WithFestivalNames("Sansculottides", "Vertu", "Genie", "Travail", "Opinion")
     .WithWeekdayNames("Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus");
 ```
 
-`WithMonthNames` takes either count and tells them apart by length:
+| Method | Takes | Leaves alone |
+| --- | --- | --- |
+| `WithLabel` | any non-blank string | everything else |
+| `WithMonthNames` | `MonthCount` names (12 above) | the festivals |
+| `WithFestivalNames` | `FestivalCount` names (5 above) | the ordinary months |
+| `WithWeekdayNames` | `WeekLength` names (7 above) | months and festivals |
 
-- **`MonthCount` names** (12 above) renames the ordinary months and leaves the festivals as they are.
-- **`Months.Count` names** (17 for the sample) renames every entry, festivals included.
+Months and festivals are renamed independently and in either order — neither call disturbs the
+other's entries. `WithMonthNames` also accepts `Months.Count` names (17 for the sample), which
+renames every entry in year order, festivals included; it tells the two forms apart by array length.
 
-Anything else throws `CalendarValidationException` naming both counts it would have accepted. Where a
-calendar has no festivals the two coincide. `WithWeekdayNames` takes exactly `WeekLength` names, and
-`WithLabel` takes any non-blank string.
+Any other count throws `CalendarValidationException` naming the counts it would have accepted. Where
+a calendar has no festivals, `MonthCount` and `Months.Count` coincide and `WithFestivalNames` takes
+an empty array.
 
 Dates don't carry across on their own, because a `GameDate` belongs to the exact calendar that built
 it. A tick means the same moment on both, so move one over with `renamed.FromTicks(date.Ticks)`.

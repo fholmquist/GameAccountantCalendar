@@ -74,6 +74,29 @@ disagrees with the weekday list.
 
 `SampleCalendars.CommonReckoning` is the worked example above, filled out to a full 365-day year.
 
+## Renaming
+
+A calendar is immutable, so renaming returns a new one with the year's shape untouched — the same day
+ranges, festivals, weekday pins, start year and identity. Only the words change.
+
+```csharp
+var revolutionary = SampleCalendars.CommonReckoning
+    .WithMonthNames("Nivose", "Pluviose", "Ventose", "Germinal", "Floreal", "Prairial",
+                    "Messidor", "Thermidor", "Fructidor", "Vendemiaire", "Brumaire", "Frimaire")
+    .WithWeekdayNames("Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus");
+```
+
+`WithMonthNames` takes either count and tells them apart by length:
+
+- **`MonthCount` names** (12 above) renames the ordinary months and leaves the festivals as they are.
+- **`Months.Count` names** (17 for the sample) renames every entry, festivals included.
+
+Anything else throws `CalendarValidationException` naming both counts it would have accepted. Where a
+calendar has no festivals the two coincide. `WithWeekdayNames` takes exactly `WeekLength` names.
+
+Dates don't carry across on their own, because a `GameDate` belongs to the exact calendar that built
+it. A tick means the same moment on both, so move one over with `renamed.FromTicks(date.Ticks)`.
+
 ## Dates
 
 ```csharp

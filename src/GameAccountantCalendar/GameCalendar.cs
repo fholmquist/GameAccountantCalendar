@@ -333,6 +333,98 @@ public sealed class GameCalendar
         return FromTicks((ulong)ticks);
     }
 
+    /// <summary>
+    /// Returns a copy of this calendar with its months renamed. The year's shape is untouched — the
+    /// same day ranges, festivals, weekday pins, start year and identity — so a tick means the same
+    /// moment on both calendars.
+    /// </summary>
+    /// <param name="names">
+    /// One name per month, in order. Pass <see cref="MonthCount"/> names to rename only the ordinary
+    /// months and leave the festivals as they are, or <see cref="Months"/>.Count names to rename every
+    /// entry including the festivals. Where a calendar has no festivals the two counts coincide.
+    /// </param>
+    /// <remarks>
+    /// Dates do not carry across on their own, because a <see cref="GameDate"/> belongs to the exact
+    /// calendar that made it. Move one over with <c>renamed.FromTicks(date.Ticks)</c>, which is exact.
+    /// </remarks>
+    /// <exception cref="CalendarValidationException">
+    /// The wrong number of names was given, or one of them is blank.
+    /// </exception>
+    public GameCalendar WithMonthNames(params string[] names)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+
+        bool everyEntry;
+        if (names.Length == _months.Length)
+            everyEntry = true;
+        else if (names.Length == _countedMonths.Length)
+            everyEntry = false;
+        else
+        {
+            throw new CalendarValidationException(
+                $"Calendar '{Label}' was given {names.Length} month names. It needs either " +
+                $"{_countedMonths.Length} (its ordinary months) or {_months.Length} (those plus its " +
+                $"{_months.Length - _countedMonths.Length} festivals).");
+        }
+
+        var renamed = new CalendarMonth[_months.Length];
+        int next = 0;
+        for (int i = 0; i < _months.Length; i++)
+        {
+            var month = _months[i];
+            string name = everyEntry ? names[i]
+                : month.IsHoliday ? month.Name
+                : names[next++];
+
+            renamed[i] = new CalendarMonth(
+                month.Number, name, month.StartDay, month.EndDay, month.AltName, month.IsHoliday, month.StartingWeekday);
+        }
+
+        return WithParts(renamed, _weekdays);
+    }
+
+    /// <summary>
+    /// Returns a copy of this calendar with its weekdays renamed. The week keeps its length and the
+    /// cycle keeps its alignment, so every date falls on the same day it did before.
+    /// </summary>
+    /// <param name="names">One name per weekday, in order. Must match <see cref="WeekLength"/> exactly.</param>
+    /// <exception cref="CalendarValidationException">
+    /// The wrong number of names was given, or one of them is blank.
+    /// </exception>
+    public GameCalendar WithWeekdayNames(params string[] names)
+    {
+        ArgumentNullException.ThrowIfNull(names);
+
+        if (names.Length != _weekdays.Length)
+        {
+            throw new CalendarValidationException(
+                _weekdays.Length == 0
+                    ? $"Calendar '{Label}' has no week, so it takes no weekday names, but {names.Length} were given."
+                    : $"Calendar '{Label}' has a week of {_weekdays.Length} days, but {names.Length} names were given.");
+        }
+
+        var renamed = new CalendarWeekday[_weekdays.Length];
+        for (int i = 0; i < names.Length; i++)
+            renamed[i] = new CalendarWeekday(_weekdays[i].Number, names[i]);
+
+        return WithParts(_months, renamed);
+    }
+
+    /// <summary>Rebuilds this calendar around new months or weekdays, keeping everything else.</summary>
+    private GameCalendar WithParts(CalendarMonth[] months, CalendarWeekday[] weekdays) => new(
+        Label,
+        months,
+        weekdays,
+        HoursInDay,
+        MinutesInHour,
+        StartYear,
+        Description,
+        Url,
+        EpochWeekday == 0 ? 1 : EpochWeekday,
+        HolidaysBreakWeekCycle,
+        Id,
+        CampaignId);
+
     /// <summary>The month with the given 1-based number, counting intercalary festivals.</summary>
     public CalendarMonth Month(int number)
     {

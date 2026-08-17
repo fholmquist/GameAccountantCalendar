@@ -77,24 +77,24 @@ disagrees with the weekday list.
 ## Dates
 
 ```csharp
-var date = calendar.Date(1492, month: 1, day: 14, hour: 6, minute: 30);
+var date = calendar.Date(1999, month: 1, day: 14, hour: 6, minute: 30);
 
-date.Year;          // 1492
+date.Year;          // 1999
 date.Month.Name;    // "Frostwane"
 date.Day;           // 14
 date.DayOfYear;     // 14
-date.Weekday?.Name; // "Starsday"
+date.Weekday?.Name; // "Moonsday"
 date.Ticks;         // ulong, since the start year
 date.ToInt64();     // the same, for a bigint column
 
 calendar.FromTicks(stored);           // back from a persisted tick
-calendar.TryParse("1492-01-14T06:30", out var parsed);
+calendar.TryParse("1999-01-14T06:30_07:42:03", out var parsed);
 ```
 
 Combat-scale fields sit alongside the calendar ones:
 
 ```csharp
-var initiative = calendar.Date(1492, 1, 14, 6, 30, round: 7, turn: 42, tick: 3);
+var initiative = calendar.Date(1999, 1, 14, 6, 30, round: 7, turn: 42, tick: 3);
 
 initiative.Round;   // 7
 initiative.Turn;    // 42
@@ -139,15 +139,15 @@ Two rules are worth knowing:
 
 | Format | Output |
 | --- | --- |
-| `d` | `14 Frostwane 1492` |
-| `D` | `Starsday, 14 Frostwane 1492` |
+| `d` | `14 Frostwane 1999` |
+| `D` | `Moonsday, 14 Frostwane 1999` |
 | `t` | `6:30` |
-| `T` | `6:30:07:42:03` |
-| `f` | `14 Frostwane 1492 6:30` |
-| `F` | `Starsday, 14 Frostwane 1492 6:30` — the default |
-| `y` | `Frostwane 1492` |
-| `n` | `1492-01-14` |
-| `o` | `1492-01-14T06:30:07:42:03` — round-trips through `TryParse` |
+| `T` | `6:30_07:42:03` |
+| `f` | `14 Frostwane 1999 6:30` |
+| `F` | `Moonsday, 14 Frostwane 1999 6:30` — the default |
+| `y` | `Frostwane 1999` |
+| `n` | `1999-01-14` |
+| `o` | `1999-01-14T06:30_07:42:03` — round-trips through `TryParse` |
 
 Custom patterns are built from specifiers, and anything unrecognised is copied through:
 
@@ -162,16 +162,18 @@ Custom patterns are built from specifiers, and anything unrecognised is copied t
 | `TT` `T` | Turn of the round |
 | `KK` `K` | Tick of the turn |
 
-Escape a specifier with `\`, wrap literal text in `'` or `"`, and prefix a lone specifier with `%` so
-it is not read as a standard format. The literal `T` in the round-trip pattern is written `\T`.
+The underscore in the round-trip format divides the wall clock from the combat clock, and is an
+ordinary literal. Escape a specifier with `\`, wrap literal text in `'` or `"`, and prefix a lone
+specifier with `%` so it is not read as a standard format — the literal `T` is written `\T`.
 
 ```csharp
-date.ToString("dddd, d MMMM yyyy");   // "Starsday, 14 Frostwane 1492"
+date.ToString("dddd, d MMMM yyyy");   // "Moonsday, 14 Frostwane 1999"
 date.ToString("'day' d 'of' MMMM");   // "day 14 of Frostwane"
+date.ToString(@"y-MM-dd\THH:mm");      // "1999-01-14T06:30"
 ```
 
 Two touches are built into the standard date formats: a single-day festival renders without a day
-number (`Firstplanting 1492`, not `1 Firstplanting 1492`), and a day with no weekday drops it along
+number (`Firstplanting 1999`, not `1 Firstplanting 1999`), and a day with no weekday drops it along
 with its comma.
 
 ## Festivals and the week

@@ -20,7 +20,7 @@ public class CombatTimeTests
     [Fact]
     public void EachUnitRollsIntoTheNext()
     {
-        var start = Calendar.Date(1492, 1, 1, 0, 0);
+        var start = Calendar.Date(1999, 1, 1, 0, 0);
 
         Assert.Equal(start.AddTurns(1), start.AddTicks(GameCalendar.TicksPerTurn));
         Assert.Equal(start.AddRounds(1), start.AddTurns(GameCalendar.TurnsPerRound));
@@ -32,7 +32,7 @@ public class CombatTimeTests
     [Fact]
     public void TicksCarryUpThroughTurnsAndRounds()
     {
-        var end = Calendar.Date(1492, 1, 1, 6, 30, 9, 99, 99);
+        var end = Calendar.Date(1999, 1, 1, 6, 30, 9, 99, 99);
         var next = end.AddTicks(1);
 
         Assert.Equal((6, 31, 0, 0, 0), (next.Hour, next.Minute, next.Round, next.Turn, next.Tick));
@@ -42,7 +42,7 @@ public class CombatTimeTests
     [Fact]
     public void ATurnRollsIntoTheNextRound()
     {
-        var lastTurn = Calendar.Date(1492, 1, 1, 6, 30, 3, 99, 0);
+        var lastTurn = Calendar.Date(1999, 1, 1, 6, 30, 3, 99, 0);
         var next = lastTurn.AddTurns(1);
 
         Assert.Equal(4, next.Round);
@@ -52,7 +52,7 @@ public class CombatTimeTests
     [Fact]
     public void CombatFieldsReadBackExactly()
     {
-        var date = Calendar.Date(1492, 7, 15, 6, 30, 7, 42, 3);
+        var date = Calendar.Date(1999, 7, 15, 6, 30, 7, 42, 3);
 
         Assert.Equal(7, date.Round);
         Assert.Equal(42, date.Turn);
@@ -69,7 +69,7 @@ public class CombatTimeTests
     [InlineData(0, 0, 100)]
     public void CombatFieldsAreRangeChecked(int round, int turn, int tick)
         => Assert.Throws<ArgumentOutOfRangeException>(
-            () => _ = Calendar.Date(1492, 1, 1, 0, 0, round, turn, tick));
+            () => _ = Calendar.Date(1999, 1, 1, 0, 0, round, turn, tick));
 
     [Fact]
     public void SpansDescribeThemselvesDownToTheTick()
@@ -101,7 +101,7 @@ public class CombatTimeTests
     public void AnInitiativeOrderFitsInsideOneRound()
     {
         // Twelve combatants each taking a turn, then the round ticks over.
-        var roundStart = Calendar.Date(1492, 1, 1, 12, 0);
+        var roundStart = Calendar.Date(1999, 1, 1, 12, 0);
         var afterEveryone = roundStart;
         for (int combatant = 0; combatant < 12; combatant++)
             afterEveryone = afterEveryone.AddTurns(1);

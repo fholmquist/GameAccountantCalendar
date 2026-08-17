@@ -35,8 +35,8 @@ public class CalendarJsonTests
         var original = SampleCalendars.CommonReckoning;
         var restored = CalendarJson.Deserialize(CalendarJson.Serialize(original));
 
-        var before = original.Date(1492, 7, 15, 6, 30, 7, 42, 3);
-        var after = restored.Date(1492, 7, 15, 6, 30, 7, 42, 3);
+        var before = original.Date(1999, 7, 15, 6, 30, 7, 42, 3);
+        var after = restored.Date(1999, 7, 15, 6, 30, 7, 42, 3);
 
         Assert.Equal(before.Ticks, after.Ticks);
         Assert.Equal(before.ToString("o"), after.ToString("o"));

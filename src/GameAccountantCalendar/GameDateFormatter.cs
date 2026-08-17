@@ -10,19 +10,19 @@ namespace GameAccountantCalendar;
 /// <remarks>
 /// <para>Standard formats, each a single character:</para>
 /// <list type="table">
-///   <item><term>d</term><description>short date — <c>14 Frostwane 1492</c></description></item>
-///   <item><term>D</term><description>long date — <c>Starsday, 14 Frostwane 1492</c></description></item>
+///   <item><term>d</term><description>short date — <c>14 Frostwane 1999</c></description></item>
+///   <item><term>D</term><description>long date — <c>Moonsday, 14 Frostwane 1999</c></description></item>
 ///   <item><term>t</term><description>time — <c>6:30</c></description></item>
-///   <item><term>T</term><description>time down to the tick — <c>6:30:00:00:00</c></description></item>
-///   <item><term>f</term><description>short date and time — <c>14 Frostwane 1492 6:30</c></description></item>
-///   <item><term>F</term><description>long date and time, the default — <c>Starsday, 14 Frostwane 1492 6:30</c></description></item>
-///   <item><term>y</term><description>month and year — <c>Frostwane 1492</c></description></item>
-///   <item><term>n</term><description>numeric date — <c>1492-01-14</c></description></item>
-///   <item><term>o</term><description>round-trip, readable by <see cref="GameCalendar.TryParse"/> — <c>1492-01-14T06:30:00:00:00</c></description></item>
+///   <item><term>T</term><description>time down to the tick — <c>6:30_00:00:00</c></description></item>
+///   <item><term>f</term><description>short date and time — <c>14 Frostwane 1999 6:30</c></description></item>
+///   <item><term>F</term><description>long date and time, the default — <c>Moonsday, 14 Frostwane 1999 6:30</c></description></item>
+///   <item><term>y</term><description>month and year — <c>Frostwane 1999</c></description></item>
+///   <item><term>n</term><description>numeric date — <c>1999-01-14</c></description></item>
+///   <item><term>o</term><description>round-trip, readable by <see cref="GameCalendar.TryParse"/> — <c>1999-01-14T06:30_00:00:00</c></description></item>
 /// </list>
 /// <para>
 /// A single-day festival renders without a day number in the date formats, so an intercalary day reads
-/// <c>Firstplanting 1492</c> rather than <c>1 Firstplanting 1492</c>. Where a day has no weekday the long
+/// <c>Firstplanting 1999</c> rather than <c>1 Firstplanting 1999</c>. Where a day has no weekday the long
 /// formats drop it along with its comma.
 /// </para>
 /// <para>Custom patterns are built from these specifiers; anything else is copied through literally:</para>
@@ -37,15 +37,19 @@ namespace GameAccountantCalendar;
 ///   <item><term>KK K</term><description>tick of the turn, 0 to 99</description></item>
 /// </list>
 /// <para>
-/// Use <c>\</c> to escape a specifier — the literal <c>T</c> in the round-trip pattern is written
-/// <c>\T</c> — wrap literal text in <c>'</c> or <c>"</c>, and prefix a lone specifier with <c>%</c> so it
-/// is not read as a standard format.
+/// The underscore in the round-trip pattern divides the wall clock from the combat clock, and is an
+/// ordinary literal. Use <c>\</c> to escape a specifier — the literal <c>T</c> is written <c>\T</c> —
+/// wrap literal text in <c>'</c> or <c>"</c>, and prefix a lone specifier with <c>%</c> so it is not
+/// read as a standard format.
 /// </para>
 /// </remarks>
 public static class GameDateFormatter
 {
-    /// <summary>The round-trip pattern, <c>yyyy-MM-ddTHH:mm:RR:TT:KK</c>, with the literal T escaped.</summary>
-    public const string RoundTripPattern = @"y-MM-dd\THH:mm:RR:TT:KK";
+    /// <summary>
+    /// The round-trip pattern, <c>yyyy-MM-ddTHH:mm_RR:TT:KK</c>, with the literal T escaped. The
+    /// underscore divides the wall clock from the combat clock.
+    /// </summary>
+    public const string RoundTripPattern = @"y-MM-dd\THH:mm_RR:TT:KK";
 
     /// <summary>Renders a date. Null or empty <paramref name="format"/> means the default, <c>"F"</c>.</summary>
     /// <exception cref="FormatException">The format string is not well formed.</exception>
@@ -74,7 +78,7 @@ public static class GameDateFormatter
             'd' => ShortDate(date, culture),
             'D' => LongDate(date, culture),
             't' => Time(date, culture),
-            'T' => Custom(date, "H:mm:RR:TT:KK", culture),
+            'T' => Custom(date, "H:mm_RR:TT:KK", culture),
             'f' => $"{ShortDate(date, culture)} {Time(date, culture)}",
             'F' => $"{LongDate(date, culture)} {Time(date, culture)}",
             'y' or 'Y' => $"{date.Month.Name} {Number(date.Year, 1, culture)}",

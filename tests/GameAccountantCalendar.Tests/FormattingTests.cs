@@ -7,72 +7,72 @@ public class FormattingTests
 {
     private static readonly GameCalendar Calendar = SampleCalendars.CommonReckoning;
 
-    private static GameDate Sample => Calendar.Date(1492, 1, 14, 6, 30);
+    private static GameDate Sample => Calendar.Date(1999, 1, 14, 6, 30);
 
-    private static GameDate MidCombat => Calendar.Date(1492, 1, 14, 6, 30, 7, 42, 3);
+    private static GameDate MidCombat => Calendar.Date(1999, 1, 14, 6, 30, 7, 42, 3);
 
     [Theory]
-    [InlineData("d", "14 Frostwane 1492")]
-    [InlineData("D", "Starsday, 14 Frostwane 1492")]
+    [InlineData("d", "14 Frostwane 1999")]
+    [InlineData("D", "Moonsday, 14 Frostwane 1999")]
     [InlineData("t", "6:30")]
-    [InlineData("T", "6:30:00:00:00")]
-    [InlineData("f", "14 Frostwane 1492 6:30")]
-    [InlineData("F", "Starsday, 14 Frostwane 1492 6:30")]
-    [InlineData("y", "Frostwane 1492")]
-    [InlineData("n", "1492-01-14")]
-    [InlineData("o", "1492-01-14T06:30:00:00:00")]
+    [InlineData("T", "6:30_00:00:00")]
+    [InlineData("f", "14 Frostwane 1999 6:30")]
+    [InlineData("F", "Moonsday, 14 Frostwane 1999 6:30")]
+    [InlineData("y", "Frostwane 1999")]
+    [InlineData("n", "1999-01-14")]
+    [InlineData("o", "1999-01-14T06:30_00:00:00")]
     public void StandardFormats(string format, string expected)
         => Assert.Equal(expected, Sample.ToString(format));
 
     [Fact]
     public void TheRoundTripFormatCarriesEveryUnit()
     {
-        Assert.Equal("1492-01-14T06:30:07:42:03", MidCombat.ToString("o"));
-        Assert.Equal("6:30:07:42:03", MidCombat.ToString("T"));
+        Assert.Equal("1999-01-14T06:30_07:42:03", MidCombat.ToString("o"));
+        Assert.Equal("6:30_07:42:03", MidCombat.ToString("T"));
     }
 
     [Fact]
     public void TheDefaultFormatIsTheLongOne()
     {
-        Assert.Equal("Starsday, 14 Frostwane 1492 6:30", Sample.ToString());
+        Assert.Equal("Moonsday, 14 Frostwane 1999 6:30", Sample.ToString());
         Assert.Equal(Sample.ToString("F"), Sample.ToString(null));
     }
 
     [Fact]
     public void ASingleDayFestivalDropsTheDayNumber()
     {
-        var festival = Calendar.Date(1492, 3, 1, 12, 0);
+        var festival = Calendar.Date(1999, 3, 1, 12, 0);
 
-        Assert.Equal("Firstplanting 1492", festival.ToString("d"));
-        Assert.Equal("Firstplanting 1492", festival.ToString("D"));
-        Assert.Equal("Firstplanting 1492 12:00", festival.ToString("F"));
+        Assert.Equal("Firstplanting 1999", festival.ToString("d"));
+        Assert.Equal("Firstplanting 1999", festival.ToString("D"));
+        Assert.Equal("Firstplanting 1999 12:00", festival.ToString("F"));
     }
 
     [Fact]
     public void ADayWithNoWeekdayDropsItAndItsComma()
     {
-        var festival = Calendar.Date(1492, 3, 1);
+        var festival = Calendar.Date(1999, 3, 1);
 
         Assert.Null(festival.Weekday);
         Assert.DoesNotContain(",", festival.ToString("D"));
     }
 
     [Theory]
-    [InlineData("dddd", "Starsday")]
-    [InlineData("ddd", "Sta")]
+    [InlineData("dddd", "Moonsday")]
+    [InlineData("ddd", "Moo")]
     [InlineData("dd", "14")]
     [InlineData("%d", "14")]
     [InlineData("MMMM", "Frostwane")]
     [InlineData("MMM", "Deep Winter")]
     [InlineData("MM", "01")]
     [InlineData("%M", "1")]
-    [InlineData("yyyy", "1492")]
-    [InlineData("yyyyyy", "001492")]
-    [InlineData("%y", "1492")]
+    [InlineData("yyyy", "1999")]
+    [InlineData("yyyyyy", "001999")]
+    [InlineData("%y", "1999")]
     [InlineData("DDD", "014")]
     [InlineData("HH:mm", "06:30")]
     [InlineData("H:mm", "6:30")]
-    [InlineData("dddd, d MMMM yyyy", "Starsday, 14 Frostwane 1492")]
+    [InlineData("dddd, d MMMM yyyy", "Moonsday, 14 Frostwane 1999")]
     public void CustomFormats(string format, string expected)
         => Assert.Equal(expected, Sample.ToString(format));
 
@@ -83,9 +83,20 @@ public class FormattingTests
     [InlineData("%T", "42")]
     [InlineData("%K", "3")]
     [InlineData("KK", "03")]
+    [InlineData("HH:mm_RR:TT:KK", "06:30_07:42:03")]
     [InlineData("'round' R', turn' TT', tick' K", "round 7, turn 42, tick 3")]
     public void CombatSpecifiers(string format, string expected)
         => Assert.Equal(expected, MidCombat.ToString(format));
+
+    [Fact]
+    public void TheUnderscoreDividesTheWallClockFromTheCombatClock()
+    {
+        var halves = MidCombat.ToString("o").Split('_');
+
+        Assert.Equal(2, halves.Length);
+        Assert.EndsWith("06:30", halves[0]);
+        Assert.Equal("07:42:03", halves[1]);
+    }
 
     [Fact]
     public void TheRoundTripPatternIsTheOneTheStandardFormatUses()
@@ -95,7 +106,7 @@ public class FormattingTests
     public void ShortMonthNameFallsBackToAnAbbreviation()
     {
         // Thawtide has no alternate name, so MMM truncates instead.
-        Assert.Equal("Tha", Calendar.Date(1492, 2, 1).ToString("MMM"));
+        Assert.Equal("Tha", Calendar.Date(1999, 2, 1).ToString("MMM"));
     }
 
     [Fact]
@@ -104,7 +115,7 @@ public class FormattingTests
         Assert.Equal("day 14 of Frostwane", Sample.ToString("'day' d 'of' MMMM"));
         Assert.Equal("day 14 of Frostwane", Sample.ToString("\"day\" d \"of\" MMMM"));
         Assert.Equal("d14", Sample.ToString("\\d%d"));
-        Assert.Equal("14/1/1492", Sample.ToString("d/M/y"));
+        Assert.Equal("14/1/1999", Sample.ToString("d/M/y"));
     }
 
     [Fact]
@@ -132,7 +143,7 @@ public class FormattingTests
     {
         var german = CultureInfo.GetCultureInfo("de-DE");
 
-        Assert.Equal("14 Frostwane 1492 6:30", Sample.ToString("f", german));
+        Assert.Equal("14 Frostwane 1999 6:30", Sample.ToString("f", german));
     }
 
     [Fact]

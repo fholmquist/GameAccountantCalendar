@@ -61,8 +61,8 @@ public class WeekdayTests
     [Fact]
     public void EveryConsecutiveDayAdvancesTheWeekByExactlyOne()
     {
-        var date = Calendar.Date(1489, 1, 1);
-        var end = Calendar.Date(1493, 1, 1);
+        var date = Calendar.Date(1996, 1, 1);
+        var end = Calendar.Date(2000, 1, 1);
         int? previous = null;
 
         while (date < end)

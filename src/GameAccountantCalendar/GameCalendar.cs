@@ -436,9 +436,11 @@ public sealed class GameCalendar
     }
 
     /// <summary>
-    /// Parses a date written in this calendar's round-trip form, <c>yyyy-MM-ddTHH:mm:RR:TT:KK</c>. Everything
-    /// after the day is optional, so <c>1492-01-14</c>, <c>1492-01-14T06:30</c> and the full
-    /// <c>1492-01-14T06:30:00:00:00</c> are all accepted, and a space may stand in for the <c>T</c>.
+    /// Parses a date written in this calendar's round-trip form,
+    /// <c>yyyy-MM-ddTHH:mm_RR:TT:KK</c> — the underscore separating the wall clock from the combat
+    /// clock. Everything after the day is optional, so <c>1999-01-14</c>, <c>1999-01-14T06:30</c> and
+    /// the full <c>1999-01-14T06:30_07:42:03</c> are all accepted, and a space may stand in for the
+    /// <c>T</c>.
     /// </summary>
     /// <returns>True when <paramref name="text"/> was a well-formed date in this calendar.</returns>
     public bool TryParse(string? text, out GameDate date)
@@ -453,26 +455,37 @@ public sealed class GameCalendar
         var timePart = split < 0 ? [] : span[(split + 1)..].Trim();
 
         Span<int> ymd = stackalloc int[3];
-        Span<int> time = stackalloc int[5];
+        Span<int> clock = stackalloc int[2];
+        Span<int> beat = stackalloc int[3];
         if (!SplitInto(datePart, '-', ymd, required: 3))
             return false;
-        if (!timePart.IsEmpty && !SplitInto(timePart, ':', time, required: 2))
-            return false;
+
+        if (!timePart.IsEmpty)
+        {
+            int underscore = timePart.IndexOf('_');
+            var clockPart = underscore < 0 ? timePart : timePart[..underscore];
+            if (!SplitInto(clockPart, ':', clock, required: 2))
+                return false;
+
+            // An underscore promises a combat clock after it, so an empty tail is malformed.
+            if (underscore >= 0 && !SplitInto(timePart[(underscore + 1)..], ':', beat, required: 1))
+                return false;
+        }
 
         (int year, int month, int day) = (ymd[0], ymd[1], ymd[2]);
         if (year < StartYear || year > MaxYear ||
             month < 1 || month > _months.Length ||
             day < 1 || day > _months[month - 1].Length ||
-            time[0] < 0 || time[0] >= HoursInDay ||
-            time[1] < 0 || time[1] >= MinutesInHour ||
-            time[2] < 0 || time[2] >= RoundsPerMinute ||
-            time[3] < 0 || time[3] >= TurnsPerRound ||
-            time[4] < 0 || time[4] >= TicksPerTurn)
+            clock[0] < 0 || clock[0] >= HoursInDay ||
+            clock[1] < 0 || clock[1] >= MinutesInHour ||
+            beat[0] < 0 || beat[0] >= RoundsPerMinute ||
+            beat[1] < 0 || beat[1] >= TurnsPerRound ||
+            beat[2] < 0 || beat[2] >= TicksPerTurn)
         {
             return false;
         }
 
-        date = Date(year, month, day, time[0], time[1], time[2], time[3], time[4]);
+        date = Date(year, month, day, clock[0], clock[1], beat[0], beat[1], beat[2]);
         return true;
     }
 

@@ -228,7 +228,7 @@ public readonly struct GameDate : IEquatable<GameDate>, IComparable<GameDate>, I
         return Ticks.CompareTo(other.Ticks);
     }
 
-    /// <summary>Renders the date in the default full format, for example <c>"Starsday, 14 Frostwane 1492 6:30"</c>.</summary>
+    /// <summary>Renders the date in the default full format, for example <c>"Moonsday, 14 Frostwane 1999 6:30"</c>.</summary>
     public override string ToString() => ToString(null, null);
 
     /// <summary>Renders the date with a standard or custom format string.</summary>

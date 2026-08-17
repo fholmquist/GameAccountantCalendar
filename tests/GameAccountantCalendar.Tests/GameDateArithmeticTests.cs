@@ -37,8 +37,8 @@ public class GameDateArithmeticTests
     [Theory]
     [InlineData(1, 1, 1, 0, 0, 0, 0, 0)]
     [InlineData(1, 1, 30, 23, 59, 9, 99, 99)]
-    [InlineData(1492, 7, 15, 6, 30, 7, 42, 3)]
-    [InlineData(1492, 3, 1, 0, 0, 0, 0, 1)]
+    [InlineData(1999, 7, 15, 6, 30, 7, 42, 3)]
+    [InlineData(1999, 3, 1, 0, 0, 0, 0, 1)]
     [InlineData(9999, 17, 30, 12, 0, 5, 0, 0)]
     public void TicksRoundTripThroughEveryField(
         int year, int month, int day, int hour, int minute, int round, int turn, int tick)
@@ -62,7 +62,7 @@ public class GameDateArithmeticTests
     {
         for (int dayOfYear = 1; dayOfYear <= Calendar.DaysInYear; dayOfYear++)
         {
-            var date = Calendar.DateFromDayOfYear(1492, dayOfYear);
+            var date = Calendar.DateFromDayOfYear(1999, dayOfYear);
             Assert.Equal(dayOfYear, date.DayOfYear);
             Assert.Equal(date, Calendar.Date(date.Year, date.MonthNumber, date.Day));
         }
@@ -71,7 +71,7 @@ public class GameDateArithmeticTests
     [Fact]
     public void TicksSurviveARoundTripThroughABigintColumn()
     {
-        var date = Calendar.Date(1492, 7, 15, 6, 30, 7, 42, 3);
+        var date = Calendar.Date(1999, 7, 15, 6, 30, 7, 42, 3);
         long stored = date.ToInt64();
 
         Assert.True(stored > 0);
@@ -82,7 +82,7 @@ public class GameDateArithmeticTests
     [Fact]
     public void AddingDaysCrossesFestivalsLikeAnyOtherDay()
     {
-        var lastOfThawtide = Calendar.Date(1492, 2, 30);
+        var lastOfThawtide = Calendar.Date(1999, 2, 30);
         var festival = lastOfThawtide.AddDays(1);
         var firstOfSeedfall = lastOfThawtide.AddDays(2);
 
@@ -95,10 +95,10 @@ public class GameDateArithmeticTests
     [Fact]
     public void AddingDaysRollsOverTheYearInBothDirections()
     {
-        var lastDay = Calendar.Date(1492, 17, 30);
+        var lastDay = Calendar.Date(1999, 17, 30);
         var newYear = lastDay.AddDays(1);
 
-        Assert.Equal(1493, newYear.Year);
+        Assert.Equal(2000, newYear.Year);
         Assert.Equal(1, newYear.DayOfYear);
         Assert.Equal(lastDay, newYear.AddDays(-1));
     }
@@ -106,7 +106,7 @@ public class GameDateArithmeticTests
     [Fact]
     public void AddingTimeCarriesIntoTheNextDay()
     {
-        var evening = Calendar.Date(1492, 1, 1, 23, 30);
+        var evening = Calendar.Date(1999, 1, 1, 23, 30);
         var later = evening.AddMinutes(45);
 
         Assert.Equal(2, later.Day);
@@ -118,10 +118,10 @@ public class GameDateArithmeticTests
     [Fact]
     public void AddYearsKeepsTheSameDayOfTheYear()
     {
-        var date = Calendar.Date(1492, 7, 15, 6, 30, 4, 20, 1);
+        var date = Calendar.Date(1999, 7, 15, 6, 30, 4, 20, 1);
         var later = date.AddYears(8);
 
-        Assert.Equal(1500, later.Year);
+        Assert.Equal(2007, later.Year);
         Assert.Equal(date.DayOfYear, later.DayOfYear);
         Assert.Equal(date.MonthNumber, later.MonthNumber);
         Assert.Equal(date.Day, later.Day);
@@ -132,7 +132,7 @@ public class GameDateArithmeticTests
     [Fact]
     public void AddMonthsStepsOverFestivals()
     {
-        var thawtide = Calendar.Date(1492, 2, 15);
+        var thawtide = Calendar.Date(1999, 2, 15);
 
         Assert.Equal("Seedfall", thawtide.AddMonths(1).Month.Name);
         Assert.Equal(15, thawtide.AddMonths(1).Day);
@@ -141,18 +141,18 @@ public class GameDateArithmeticTests
     [Fact]
     public void AddMonthsWrapsAcrossTheYear()
     {
-        var frostwane = Calendar.Date(1492, 1, 15);
+        var frostwane = Calendar.Date(1999, 1, 15);
 
-        Assert.Equal(1493, frostwane.AddMonths(12).Year);
+        Assert.Equal(2000, frostwane.AddMonths(12).Year);
         Assert.Equal("Frostwane", frostwane.AddMonths(12).Month.Name);
-        Assert.Equal(1491, frostwane.AddMonths(-1).Year);
+        Assert.Equal(1998, frostwane.AddMonths(-1).Year);
         Assert.Equal("Deepnight", frostwane.AddMonths(-1).Month.Name);
     }
 
     [Fact]
     public void AddMonthsFromAFestivalMovesToTheNextOrdinaryMonth()
     {
-        var festival = Calendar.Date(1492, 3, 1, 9, 15);
+        var festival = Calendar.Date(1999, 3, 1, 9, 15);
         var stepped = festival.AddMonths(0);
 
         Assert.Equal("Seedfall", stepped.Month.Name);
@@ -184,8 +184,8 @@ public class GameDateArithmeticTests
     [Fact]
     public void SubtractingTwoDatesGivesASpan()
     {
-        var start = Calendar.Date(1492, 1, 1, 0, 0);
-        var end = Calendar.Date(1492, 1, 3, 6, 30);
+        var start = Calendar.Date(1999, 1, 1, 0, 0);
+        var end = Calendar.Date(1999, 1, 3, 6, 30);
 
         Assert.Equal(((2L * 1440) + (6 * 60) + 30) * GameCalendar.TicksPerMinute, (end - start).TotalTicks);
         Assert.Equal("2 days, 6 hours, 30 minutes", Calendar.Describe(end - start));
@@ -195,25 +195,25 @@ public class GameDateArithmeticTests
     [Fact]
     public void DaysUntilCountsMidnightsCrossed()
     {
-        var lateNight = Calendar.Date(1492, 1, 1, 23, 59);
-        var earlyMorning = Calendar.Date(1492, 1, 2, 0, 1);
+        var lateNight = Calendar.Date(1999, 1, 1, 23, 59);
+        var earlyMorning = Calendar.Date(1999, 1, 2, 0, 1);
 
         Assert.Equal(1, lateNight.DaysUntil(earlyMorning));
         Assert.Equal(-1, earlyMorning.DaysUntil(lateNight));
-        Assert.Equal(0, lateNight.DaysUntil(Calendar.Date(1492, 1, 1, 0, 0)));
+        Assert.Equal(0, lateNight.DaysUntil(Calendar.Date(1999, 1, 1, 0, 0)));
     }
 
     [Fact]
     public void BoundariesSnapToTheStartOfTheMinuteDayMonthAndYear()
     {
-        var date = Calendar.Date(1492, 4, 17, 13, 45, 6, 12, 8);
+        var date = Calendar.Date(1999, 4, 17, 13, 45, 6, 12, 8);
 
-        Assert.Equal(Calendar.Date(1492, 4, 17, 13, 45), date.StartOfMinute);
-        Assert.Equal(Calendar.Date(1492, 4, 17), date.StartOfDay);
-        Assert.Equal(Calendar.Date(1492, 4, 17, 23, 59, 9, 99, 99), date.EndOfDay);
-        Assert.Equal(Calendar.Date(1492, 4, 1), date.StartOfMonth);
-        Assert.Equal(Calendar.Date(1492, 1, 1), date.StartOfYear);
-        Assert.Equal(Calendar.Date(1492, 4, 17, 8, 0), date.WithTime(8, 0));
+        Assert.Equal(Calendar.Date(1999, 4, 17, 13, 45), date.StartOfMinute);
+        Assert.Equal(Calendar.Date(1999, 4, 17), date.StartOfDay);
+        Assert.Equal(Calendar.Date(1999, 4, 17, 23, 59, 9, 99, 99), date.EndOfDay);
+        Assert.Equal(Calendar.Date(1999, 4, 1), date.StartOfMonth);
+        Assert.Equal(Calendar.Date(1999, 1, 1), date.StartOfYear);
+        Assert.Equal(Calendar.Date(1999, 4, 17, 8, 0), date.WithTime(8, 0));
     }
 
     [Fact]
@@ -255,14 +255,14 @@ public class GameDateArithmeticTests
     {
         var dates = new[]
         {
-            Calendar.Date(1492, 5, 1),
-            Calendar.Date(1490, 1, 1),
-            Calendar.Date(1492, 1, 1),
+            Calendar.Date(1999, 5, 1),
+            Calendar.Date(1997, 1, 1),
+            Calendar.Date(1999, 1, 1),
         };
 
         Array.Sort(dates);
 
-        Assert.Equal(new[] { 1490, 1492, 1492 }, dates.Select(d => d.Year));
+        Assert.Equal(new[] { 1997, 1999, 1999 }, dates.Select(d => d.Year));
         Assert.Equal(new[] { 1, 1, 5 }, dates.Select(d => d.MonthNumber));
     }
 }

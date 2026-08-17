@@ -297,6 +297,154 @@ public class RenamingTests
         Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithFestivalNames(names));
     }
 
+    /// <summary>Twelve slots: a secondary name on the first three, none on the rest.</summary>
+    private static readonly string?[] TwelveAltNames =
+    [
+        "Snowfast", "Rainturn", "Windwake", null, null, null, null, null, null, null, null, null,
+    ];
+
+    [Fact]
+    public void MonthAltNamesCanBeReplaced()
+    {
+        var renamed = Calendar.WithMonthAltNames(TwelveAltNames);
+
+        // Entry 3 is the Firstplanting festival, so the third name lands on entry 4, Seedfall.
+        Assert.Equal("Snowfast", renamed.Month(1).AltName);
+        Assert.Equal("Rainturn", renamed.Month(2).AltName);
+        Assert.Equal("Seedfall", renamed.Month(4).Name);
+        Assert.Equal("Windwake", renamed.Month(4).AltName);
+        Assert.Null(renamed.Month(5).AltName);
+
+        // The primary names and the year's shape are untouched.
+        Assert.Equal("Frostwane", renamed.Month(1).Name);
+        Assert.Equal(
+            Calendar.Months.Select(m => (m.Number, m.Name, m.StartDay, m.EndDay, m.IsHoliday)),
+            renamed.Months.Select(m => (m.Number, m.Name, m.StartDay, m.EndDay, m.IsHoliday)));
+    }
+
+    [Fact]
+    public void FestivalsKeepTheirAltNamesWhenOnlyTheMonthsAreGiven()
+    {
+        var renamed = Calendar.WithMonthAltNames(TwelveAltNames);
+
+        Assert.All(renamed.Months.Where(m => m.IsHoliday), m => Assert.Null(m.AltName));
+    }
+
+    [Fact]
+    public void NullAndBlankAltNamesClearRatherThanSetAnEmptyOne()
+    {
+        Assert.Equal("Deep Winter", Calendar.Month(1).AltName);
+        Assert.Equal("Summertide", Calendar.Month(8).AltName);
+
+        var cleared = Calendar.WithMonthAltNames(new string?[12]);
+        Assert.All(cleared.Months, m => Assert.Null(m.AltName));
+
+        var blanked = Calendar.WithMonthAltNames("", "  ", null, null, null, null, null, null, null, null, null, null);
+        Assert.Null(blanked.Month(1).AltName);
+        Assert.Null(blanked.Month(2).AltName);
+    }
+
+    [Fact]
+    public void ClearingAnAltNameSendsMMMBackToTheMonthsOwnName()
+    {
+        Assert.Equal("Deep Winter", Calendar.Date(1999, 1, 1).ToString("MMM"));
+
+        var cleared = Calendar.WithMonthAltNames(new string?[12]);
+
+        Assert.Equal("Fro", cleared.Date(1999, 1, 1).ToString("MMM"));
+        Assert.Equal("Frostwane", cleared.Date(1999, 1, 1).ToString("MMMM"));
+    }
+
+    [Fact]
+    public void MonthsAreFoundByTheirNewAltNames()
+    {
+        var renamed = Calendar.WithMonthAltNames(TwelveAltNames);
+
+        Assert.Equal("Frostwane", renamed.FindMonth("Snowfast")?.Name);
+        Assert.Null(renamed.FindMonth("Deep Winter"));
+        Assert.Equal("Frostwane", renamed.FindMonth("Frostwane")?.Name);
+    }
+
+    [Fact]
+    public void SeventeenAltNamesCoverTheFestivalsToo()
+    {
+        var names = Enumerable.Range(1, Calendar.Months.Count).Select(i => (string?)$"A{i}").ToArray();
+        var renamed = Calendar.WithMonthAltNames(names);
+
+        Assert.Equal("A1", renamed.Month(1).AltName);
+        Assert.Equal("A3", renamed.Month(3).AltName);
+        Assert.True(renamed.Month(3).IsHoliday);
+        Assert.Equal("A17", renamed.Month(17).AltName);
+    }
+
+    [Fact]
+    public void FestivalAltNamesCanBeReplacedOnTheirOwn()
+    {
+        var renamed = Calendar.WithFestivalAltNames("Sowing", "Greening", "Zenith", "Harvest", "Turning");
+
+        Assert.Equal(
+            new[] { "Sowing", "Greening", "Zenith", "Harvest", "Turning" },
+            renamed.Months.Where(m => m.IsHoliday).Select(m => m.AltName));
+
+        // The ordinary months keep the secondary names they had.
+        Assert.Equal("Deep Winter", renamed.Month(1).AltName);
+        Assert.Equal("Summertide", renamed.Month(8).AltName);
+        Assert.Equal("Firstplanting", renamed.Month(3).Name);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(11)]
+    [InlineData(13)]
+    [InlineData(18)]
+    public void TheWrongNumberOfMonthAltNamesIsRefused(int count)
+    {
+        var names = Enumerable.Range(1, count).Select(i => (string?)$"A{i}").ToArray();
+
+        var error = Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithMonthAltNames(names));
+        Assert.Contains("12", error.Message);
+        Assert.Contains("17", error.Message);
+        Assert.Contains(nameof(GameCalendar.WithFestivalAltNames), error.Message);
+    }
+
+    [Theory]
+    [InlineData(4)]
+    [InlineData(6)]
+    public void TheWrongNumberOfFestivalAltNamesIsRefused(int count)
+    {
+        var names = Enumerable.Range(1, count).Select(i => (string?)$"A{i}").ToArray();
+
+        var error = Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithFestivalAltNames(names));
+        Assert.Contains("5 festivals", error.Message);
+    }
+
+    [Fact]
+    public void NamesAndAltNamesAreReplacedIndependently()
+    {
+        var renamed = Calendar
+            .WithMonthNames(TwelveMonths)
+            .WithMonthAltNames(TwelveAltNames);
+
+        Assert.Equal("Nivose", renamed.Month(1).Name);
+        Assert.Equal("Snowfast", renamed.Month(1).AltName);
+
+        var reversed = Calendar
+            .WithMonthAltNames(TwelveAltNames)
+            .WithMonthNames(TwelveMonths);
+
+        Assert.Equal(
+            renamed.Months.Select(m => (m.Name, m.AltName)),
+            reversed.Months.Select(m => (m.Name, m.AltName)));
+    }
+
+    [Fact]
+    public void ABlankAltNameNeverSurvivesConstruction()
+    {
+        Assert.Null(new CalendarMonth(1, "Only", 1, 30, altName: "").AltName);
+        Assert.Null(new CalendarMonth(1, "Only", 1, 30, altName: "   ").AltName);
+        Assert.Equal("Alt", new CalendarMonth(1, "Only", 1, 30, altName: "Alt").AltName);
+    }
+
     [Fact]
     public void TheLabelCanBeChangedOnItsOwn()
     {

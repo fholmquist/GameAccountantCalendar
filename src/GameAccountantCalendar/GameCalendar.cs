@@ -364,34 +364,25 @@ public sealed class GameCalendar
     public GameCalendar WithMonthNames(params string[] names)
     {
         ArgumentNullException.ThrowIfNull(names);
+        bool everyEntry = ResolveMonthScope(names.Length, "month names", nameof(WithFestivalNames));
+        return RemapMonths(names, TakesMonthName(everyEntry), static (month, name) => month.WithName(name!));
+    }
 
-        bool everyEntry;
-        if (names.Length == _months.Length)
-            everyEntry = true;
-        else if (names.Length == _countedMonths.Length)
-            everyEntry = false;
-        else
-        {
-            throw new CalendarValidationException(
-                $"Calendar '{Label}' was given {names.Length} month names. It needs either " +
-                $"{_countedMonths.Length} (its ordinary months) or {_months.Length} (those plus its " +
-                $"{FestivalCount} festivals). To rename the festivals alone, use WithFestivalNames.");
-        }
-
-        var renamed = new CalendarMonth[_months.Length];
-        int next = 0;
-        for (int i = 0; i < _months.Length; i++)
-        {
-            var month = _months[i];
-            string name = everyEntry ? names[i]
-                : month.IsHoliday ? month.Name
-                : names[next++];
-
-            renamed[i] = new CalendarMonth(
-                month.Number, name, month.StartDay, month.EndDay, month.AltName, month.IsHoliday, month.StartingWeekday);
-        }
-
-        return WithParts(Label, renamed, _weekdays);
+    /// <summary>
+    /// Returns a copy of this calendar with its months' secondary names replaced — the
+    /// <see cref="CalendarMonth.AltName"/> that <c>MMM</c> renders and <see cref="FindMonth"/> also
+    /// matches on. The primary names and the year's shape are untouched.
+    /// </summary>
+    /// <param name="altNames">
+    /// One secondary name per month, in the same order and counts <see cref="WithMonthNames"/> takes.
+    /// A null or blank entry clears that month's secondary name rather than setting an empty one.
+    /// </param>
+    /// <exception cref="CalendarValidationException">The wrong number of names was given.</exception>
+    public GameCalendar WithMonthAltNames(params string?[] altNames)
+    {
+        ArgumentNullException.ThrowIfNull(altNames);
+        bool everyEntry = ResolveMonthScope(altNames.Length, "month alternate names", nameof(WithFestivalAltNames));
+        return RemapMonths(altNames, TakesMonthName(everyEntry), static (month, alt) => month.WithAltName(alt));
     }
 
     /// <summary>
@@ -408,27 +399,73 @@ public sealed class GameCalendar
     public GameCalendar WithFestivalNames(params string[] names)
     {
         ArgumentNullException.ThrowIfNull(names);
+        RequireFestivalCount(names.Length, "names");
+        return RemapMonths(names, static month => month.IsHoliday, static (month, name) => month.WithName(name!));
+    }
 
-        if (names.Length != FestivalCount)
-        {
-            throw new CalendarValidationException(
-                FestivalCount == 0
-                    ? $"Calendar '{Label}' has no festivals, so it takes no festival names, but {names.Length} were given."
-                    : $"Calendar '{Label}' has {FestivalCount} festivals, but {names.Length} names were given.");
-        }
+    /// <summary>
+    /// Returns a copy of this calendar with its festivals' secondary names replaced and its ordinary
+    /// months left alone.
+    /// </summary>
+    /// <param name="altNames">
+    /// One secondary name per festival, in year order. Must match <see cref="FestivalCount"/> exactly.
+    /// A null or blank entry clears that festival's secondary name.
+    /// </param>
+    /// <exception cref="CalendarValidationException">The wrong number of names was given.</exception>
+    public GameCalendar WithFestivalAltNames(params string?[] altNames)
+    {
+        ArgumentNullException.ThrowIfNull(altNames);
+        RequireFestivalCount(altNames.Length, "alternate names");
+        return RemapMonths(altNames, static month => month.IsHoliday, static (month, alt) => month.WithAltName(alt));
+    }
 
-        var renamed = new CalendarMonth[_months.Length];
+    /// <summary>Which entries a month-name array covers: every one of them, or the ordinary months alone.</summary>
+    private static Func<CalendarMonth, bool> TakesMonthName(bool everyEntry)
+        => everyEntry ? static _ => true : static month => !month.IsHoliday;
+
+    /// <summary>
+    /// Reads a month-array length as covering either every entry or the ordinary months alone, since a
+    /// calendar with festivals accepts both counts.
+    /// </summary>
+    private bool ResolveMonthScope(int given, string what, string festivalMethod)
+    {
+        if (given == _months.Length)
+            return true;
+        if (given == _countedMonths.Length)
+            return false;
+
+        throw new CalendarValidationException(
+            $"Calendar '{Label}' was given {given} {what}. It needs either {_countedMonths.Length} " +
+            $"(its ordinary months) or {_months.Length} (those plus its {FestivalCount} festivals). " +
+            $"To reach the festivals alone, use {festivalMethod}.");
+    }
+
+    private void RequireFestivalCount(int given, string what)
+    {
+        if (given == FestivalCount)
+            return;
+
+        throw new CalendarValidationException(
+            FestivalCount == 0
+                ? $"Calendar '{Label}' has no festivals, so it takes no festival {what}, but {given} were given."
+                : $"Calendar '{Label}' has {FestivalCount} festivals, but {given} {what} were given.");
+    }
+
+    /// <summary>Walks the year, handing each qualifying entry the next value in turn.</summary>
+    private GameCalendar RemapMonths(
+        string?[] values,
+        Func<CalendarMonth, bool> takesValue,
+        Func<CalendarMonth, string?, CalendarMonth> apply)
+    {
+        var remapped = new CalendarMonth[_months.Length];
         int next = 0;
         for (int i = 0; i < _months.Length; i++)
         {
             var month = _months[i];
-            string name = month.IsHoliday ? names[next++] : month.Name;
-
-            renamed[i] = new CalendarMonth(
-                month.Number, name, month.StartDay, month.EndDay, month.AltName, month.IsHoliday, month.StartingWeekday);
+            remapped[i] = takesValue(month) ? apply(month, values[next++]) : month;
         }
 
-        return WithParts(Label, renamed, _weekdays);
+        return WithParts(Label, remapped, _weekdays);
     }
 
     /// <summary>

@@ -46,7 +46,9 @@ public sealed class CalendarMonth
         Name = name;
         StartDay = startDay;
         EndDay = endDay;
-        AltName = altName;
+        // A month either has a secondary name or it does not; a blank one is the latter, so that
+        // formats falling back on it (MMM) reach the primary name rather than rendering nothing.
+        AltName = string.IsNullOrWhiteSpace(altName) ? null : altName;
         IsHoliday = isHoliday;
         StartingWeekday = startingWeekday;
     }
@@ -74,6 +76,17 @@ public sealed class CalendarMonth
 
     /// <summary>Number of days in this month.</summary>
     public int Length => EndDay - StartDay + 1;
+
+    /// <summary>A copy of this month under a different name, keeping its place in the year.</summary>
+    public CalendarMonth WithName(string name)
+        => new(Number, name, StartDay, EndDay, AltName, IsHoliday, StartingWeekday);
+
+    /// <summary>
+    /// A copy of this month with a different secondary name, keeping its place in the year. Null or
+    /// blank means it has none.
+    /// </summary>
+    public CalendarMonth WithAltName(string? altName)
+        => new(Number, Name, StartDay, EndDay, altName, IsHoliday, StartingWeekday);
 
     /// <inheritdoc />
     public override string ToString() => Name;

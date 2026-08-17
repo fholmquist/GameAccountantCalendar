@@ -92,15 +92,23 @@ var revolutionary = SampleCalendars.CommonReckoning
 | --- | --- | --- |
 | `WithLabel` | any non-blank string | everything else |
 | `WithMonthNames` | `MonthCount` names (12 above) | the festivals |
+| `WithMonthAltNames` | `MonthCount` secondary names | the primary names, the festivals |
 | `WithFestivalNames` | `FestivalCount` names (5 above) | the ordinary months |
+| `WithFestivalAltNames` | `FestivalCount` secondary names | the primary names, the months |
 | `WithWeekdayNames` | `WeekLength` names (7 above) | months and festivals |
 
-Months and festivals are renamed independently and in either order — neither call disturbs the
-other's entries. `WithMonthNames` also accepts `Months.Count` names (17 for the sample), which
-renames every entry in year order, festivals included; it tells the two forms apart by array length.
+Every one of these is independent and order doesn't matter — no call disturbs what another set. The
+two `MonthNames` methods also accept `Months.Count` entries (17 for the sample), which covers every
+entry in year order with the festivals in their places; they tell the two forms apart by array
+length.
 
-Any other count throws `CalendarValidationException` naming the counts it would have accepted. Where
-a calendar has no festivals, `MonthCount` and `Months.Count` coincide and `WithFestivalNames` takes
+Secondary names are the `alt_name` column: what `MMM` renders and what `FindMonth` also matches on.
+They are optional, so the alt-name methods take `string?[]` and a null or blank entry **clears** that
+month's secondary name rather than setting an empty one — after which `MMM` falls back to the first
+three letters of the primary name.
+
+Any wrong count throws `CalendarValidationException` naming the counts it would have accepted. Where
+a calendar has no festivals, `MonthCount` and `Months.Count` coincide and the festival methods take
 an empty array.
 
 Dates don't carry across on their own, because a `GameDate` belongs to the exact calendar that built

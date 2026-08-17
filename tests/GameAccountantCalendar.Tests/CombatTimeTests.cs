@@ -2,19 +2,19 @@ using Xunit;
 
 namespace GameAccountantCalendar.Tests;
 
-/// <summary>The sub-minute units: 10 rounds to a minute, 100 turns to a round, 10 ticks to a turn.</summary>
+/// <summary>The sub-minute units: 10 rounds to a minute, 100 turns to a round, 100 ticks to a turn.</summary>
 public class CombatTimeTests
 {
     private static readonly GameCalendar Calendar = SampleCalendars.CommonReckoning;
 
     [Fact]
-    public void TheUnitsNestTenHundredTen()
+    public void TheUnitsNestTenHundredHundred()
     {
-        Assert.Equal(10, GameCalendar.TicksPerTurn);
+        Assert.Equal(100, GameCalendar.TicksPerTurn);
         Assert.Equal(100, GameCalendar.TurnsPerRound);
         Assert.Equal(10, GameCalendar.RoundsPerMinute);
-        Assert.Equal(1_000, GameCalendar.TicksPerRound);
-        Assert.Equal(10_000, GameCalendar.TicksPerMinute);
+        Assert.Equal(10_000, GameCalendar.TicksPerRound);
+        Assert.Equal(100_000, GameCalendar.TicksPerMinute);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class CombatTimeTests
     [Fact]
     public void TicksCarryUpThroughTurnsAndRounds()
     {
-        var end = Calendar.Date(1492, 1, 1, 6, 30, 9, 99, 9);
+        var end = Calendar.Date(1492, 1, 1, 6, 30, 9, 99, 99);
         var next = end.AddTicks(1);
 
         Assert.Equal((6, 31, 0, 0, 0), (next.Hour, next.Minute, next.Round, next.Turn, next.Tick));
@@ -66,7 +66,7 @@ public class CombatTimeTests
     [InlineData(0, -1, 0)]
     [InlineData(0, 100, 0)]
     [InlineData(0, 0, -1)]
-    [InlineData(0, 0, 10)]
+    [InlineData(0, 0, 100)]
     public void CombatFieldsAreRangeChecked(int round, int turn, int tick)
         => Assert.Throws<ArgumentOutOfRangeException>(
             () => _ = Calendar.Date(1492, 1, 1, 0, 0, round, turn, tick));
@@ -88,13 +88,13 @@ public class CombatTimeTests
     {
         var span = GameTimeSpan.FromMinutes(2);
 
-        Assert.Equal(20_000, span.TotalTicks);
+        Assert.Equal(200_000, span.TotalTicks);
         Assert.Equal(2_000, span.TotalTurns);
         Assert.Equal(20, span.TotalRounds);
         Assert.Equal(2, span.TotalMinutes);
         Assert.Equal(GameTimeSpan.FromRounds(20), span);
         Assert.Equal(GameTimeSpan.FromTurns(2_000), span);
-        Assert.Equal(GameTimeSpan.FromTicks(20_000), span);
+        Assert.Equal(GameTimeSpan.FromTicks(200_000), span);
     }
 
     [Fact]

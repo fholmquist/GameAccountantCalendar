@@ -26,17 +26,17 @@ public class GameDateArithmeticTests
     [Fact]
     public void TicksCountUpInTheCalendarsOwnUnits()
     {
-        Assert.Equal(14_400_000L, Calendar.TicksPerDay);
-        Assert.Equal(600_000L, Calendar.TicksPerHour);
-        Assert.Equal(365L * 14_400_000, Calendar.TicksPerYear);
+        Assert.Equal(144_000_000L, Calendar.TicksPerDay);
+        Assert.Equal(6_000_000L, Calendar.TicksPerHour);
+        Assert.Equal(365L * 144_000_000, Calendar.TicksPerYear);
 
-        Assert.Equal(14_400_000UL, Calendar.Date(1, 1, 2).Ticks);
-        Assert.Equal(365UL * 14_400_000, Calendar.Date(2, 1, 1).Ticks);
+        Assert.Equal(144_000_000UL, Calendar.Date(1, 1, 2).Ticks);
+        Assert.Equal(365UL * 144_000_000, Calendar.Date(2, 1, 1).Ticks);
     }
 
     [Theory]
     [InlineData(1, 1, 1, 0, 0, 0, 0, 0)]
-    [InlineData(1, 1, 30, 23, 59, 9, 99, 9)]
+    [InlineData(1, 1, 30, 23, 59, 9, 99, 99)]
     [InlineData(1492, 7, 15, 6, 30, 7, 42, 3)]
     [InlineData(1492, 3, 1, 0, 0, 0, 0, 1)]
     [InlineData(9999, 17, 30, 12, 0, 5, 0, 0)]
@@ -210,7 +210,7 @@ public class GameDateArithmeticTests
 
         Assert.Equal(Calendar.Date(1492, 4, 17, 13, 45), date.StartOfMinute);
         Assert.Equal(Calendar.Date(1492, 4, 17), date.StartOfDay);
-        Assert.Equal(Calendar.Date(1492, 4, 17, 23, 59, 9, 99, 9), date.EndOfDay);
+        Assert.Equal(Calendar.Date(1492, 4, 17, 23, 59, 9, 99, 99), date.EndOfDay);
         Assert.Equal(Calendar.Date(1492, 4, 1), date.StartOfMonth);
         Assert.Equal(Calendar.Date(1492, 1, 1), date.StartOfYear);
         Assert.Equal(Calendar.Date(1492, 4, 17, 8, 0), date.WithTime(8, 0));

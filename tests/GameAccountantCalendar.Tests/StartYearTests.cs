@@ -58,12 +58,30 @@ public class StartYearTests
         foreach (int startYear in new[] { 1, 1370, -5000 })
         {
             var calendar = WithStartYear(startYear);
-            var last = calendar.Date(calendar.MaxYear, 12, 30, 23, 59, 9, 99, 9);
+            var last = calendar.Date(calendar.MaxYear, 12, 30, 23, 59, 9, 99, 99);
 
             Assert.Equal(calendar.MaxTicks, last.Ticks);
             Assert.True(calendar.MaxTicks <= (ulong)long.MaxValue);
             Assert.Equal(last, calendar.FromTicks(last.ToInt64()));
         }
+    }
+
+    [Fact]
+    public void AFinerTickStillLeavesRoomForTensOfThousandsOfYears()
+    {
+        // 100 ticks to a turn puts a standard year at 52,560,000,000 ticks. Ten thousand of them
+        // costs 5.256e14 — about one seventeen-thousandth of the signed range — so the horizon is
+        // set by the library's own cap, not by the integer type.
+        var calendar = SampleCalendars.CommonReckoning;
+
+        Assert.Equal(100_000, GameCalendar.TicksPerMinute);
+        Assert.Equal(52_560_000_000L, calendar.TicksPerYear);
+        Assert.True(calendar.MaxYear - calendar.StartYear >= 10_000);
+        Assert.True(calendar.MaxTicks <= (ulong)long.MaxValue);
+
+        var farFuture = calendar.Date(calendar.StartYear + 10_000, 1, 1);
+        Assert.Equal(10_000UL * (ulong)calendar.TicksPerYear, farFuture.Ticks);
+        Assert.Equal(farFuture, calendar.FromTicks(farFuture.ToInt64()));
     }
 
     [Fact]

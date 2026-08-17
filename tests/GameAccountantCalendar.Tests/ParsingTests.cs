@@ -58,7 +58,7 @@ public class ParsingTests
     [InlineData("1492-01-14T06:60")]    // minute is out of range
     [InlineData("1492-01-14T06:30:10")] // round is out of range
     [InlineData("1492-01-14T06:30:07:100")]
-    [InlineData("1492-01-14T06:30:07:42:10")]
+    [InlineData("1492-01-14T06:30:07:42:100")]
     [InlineData("1492-01-14T06:30:07:42:3:1")]
     [InlineData("0-01-01")]             // before the start year
     public void MalformedOrOutOfRangeTextIsRejected(string? text)

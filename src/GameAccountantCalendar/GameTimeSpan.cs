@@ -1,7 +1,7 @@
 namespace GameAccountantCalendar;
 
 /// <summary>
-/// A length of game time, counted in ticks — 10 to a turn, 1,000 to a round, 10,000 to a minute. Days and
+/// A length of game time, counted in ticks — 100 to a turn, 10,000 to a round, 100,000 to a minute. Days and
 /// hours are deliberately not properties here, because how many ticks those hold is a property of the
 /// calendar; use <see cref="GameCalendar.Days"/>, <see cref="GameCalendar.Hours"/> and
 /// <see cref="GameCalendar.Describe"/> to move between a span and a calendar's own units.

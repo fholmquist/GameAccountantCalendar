@@ -15,20 +15,20 @@ public class FormattingTests
     [InlineData("d", "14 Frostwane 1492")]
     [InlineData("D", "Starsday, 14 Frostwane 1492")]
     [InlineData("t", "6:30")]
-    [InlineData("T", "6:30:00:00:0")]
+    [InlineData("T", "6:30:00:00:00")]
     [InlineData("f", "14 Frostwane 1492 6:30")]
     [InlineData("F", "Starsday, 14 Frostwane 1492 6:30")]
     [InlineData("y", "Frostwane 1492")]
     [InlineData("n", "1492-01-14")]
-    [InlineData("o", "1492-01-14T06:30:00:00:0")]
+    [InlineData("o", "1492-01-14T06:30:00:00:00")]
     public void StandardFormats(string format, string expected)
         => Assert.Equal(expected, Sample.ToString(format));
 
     [Fact]
     public void TheRoundTripFormatCarriesEveryUnit()
     {
-        Assert.Equal("1492-01-14T06:30:07:42:3", MidCombat.ToString("o"));
-        Assert.Equal("6:30:07:42:3", MidCombat.ToString("T"));
+        Assert.Equal("1492-01-14T06:30:07:42:03", MidCombat.ToString("o"));
+        Assert.Equal("6:30:07:42:03", MidCombat.ToString("T"));
     }
 
     [Fact]
@@ -82,6 +82,7 @@ public class FormattingTests
     [InlineData("TT", "42")]
     [InlineData("%T", "42")]
     [InlineData("%K", "3")]
+    [InlineData("KK", "03")]
     [InlineData("'round' R', turn' TT', tick' K", "round 7, turn 42, tick 3")]
     public void CombatSpecifiers(string format, string expected)
         => Assert.Equal(expected, MidCombat.ToString(format));

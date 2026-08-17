@@ -16,10 +16,10 @@ namespace GameAccountantCalendar;
 /// <list type="bullet">
 ///   <item><description>10 rounds to a minute (<see cref="RoundsPerMinute"/>)</description></item>
 ///   <item><description>100 turns to a round (<see cref="TurnsPerRound"/>)</description></item>
-///   <item><description>10 ticks to a turn (<see cref="TicksPerTurn"/>)</description></item>
+///   <item><description>100 ticks to a turn (<see cref="TicksPerTurn"/>)</description></item>
 /// </list>
 /// <para>
-/// which gives <see cref="TicksPerMinute"/> = 10,000. Because reckoning starts at <see cref="StartYear"/>
+/// which gives <see cref="TicksPerMinute"/> = 100,000. Because reckoning starts at <see cref="StartYear"/>
 /// rather than at year 1, a tick count is never negative and always fits in a <see cref="ulong"/>; it also
 /// stays inside <see cref="long.MaxValue"/> so it round-trips through the signed <c>bigint game_time_start</c>
 /// column, which is what <see cref="GameDate.ToInt64"/> is for.
@@ -32,7 +32,7 @@ namespace GameAccountantCalendar;
 public sealed class GameCalendar
 {
     /// <summary>Ticks in one turn.</summary>
-    public const int TicksPerTurn = 10;
+    public const int TicksPerTurn = 100;
 
     /// <summary>Turns in one round.</summary>
     public const int TurnsPerRound = 100;
@@ -40,10 +40,10 @@ public sealed class GameCalendar
     /// <summary>Rounds in one minute.</summary>
     public const int RoundsPerMinute = 10;
 
-    /// <summary>Ticks in one round: 1,000.</summary>
+    /// <summary>Ticks in one round: 10,000.</summary>
     public const int TicksPerRound = TurnsPerRound * TicksPerTurn;
 
-    /// <summary>Ticks in one minute: 10,000.</summary>
+    /// <summary>Ticks in one minute: 100,000.</summary>
     public const int TicksPerMinute = RoundsPerMinute * TicksPerRound;
 
     /// <summary>The furthest any calendar will reckon past its <see cref="StartYear"/>.</summary>
@@ -255,7 +255,7 @@ public sealed class GameCalendar
     /// <param name="minute">Minute of hour, from 0.</param>
     /// <param name="round">Round of the minute, 0 to 9.</param>
     /// <param name="turn">Turn of the round, 0 to 99.</param>
-    /// <param name="tick">Tick of the turn, 0 to 9.</param>
+    /// <param name="tick">Tick of the turn, 0 to 99.</param>
     /// <exception cref="ArgumentOutOfRangeException">A field falls outside what this calendar allows.</exception>
     public GameDate Date(int year, int month, int day, int hour = 0, int minute = 0, int round = 0, int turn = 0, int tick = 0)
     {
@@ -276,7 +276,7 @@ public sealed class GameCalendar
     /// <param name="minute">Minute of hour, from 0.</param>
     /// <param name="round">Round of the minute, 0 to 9.</param>
     /// <param name="turn">Turn of the round, 0 to 99.</param>
-    /// <param name="tick">Tick of the turn, 0 to 9.</param>
+    /// <param name="tick">Tick of the turn, 0 to 99.</param>
     public GameDate DateFromDayOfYear(int year, int dayOfYear, int hour = 0, int minute = 0, int round = 0, int turn = 0, int tick = 0)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(year, StartYear);
@@ -436,9 +436,9 @@ public sealed class GameCalendar
     }
 
     /// <summary>
-    /// Parses a date written in this calendar's round-trip form, <c>yyyy-MM-ddTHH:mm:RR:TT:K</c>. Everything
+    /// Parses a date written in this calendar's round-trip form, <c>yyyy-MM-ddTHH:mm:RR:TT:KK</c>. Everything
     /// after the day is optional, so <c>1492-01-14</c>, <c>1492-01-14T06:30</c> and the full
-    /// <c>1492-01-14T06:30:00:00:0</c> are all accepted, and a space may stand in for the <c>T</c>.
+    /// <c>1492-01-14T06:30:00:00:00</c> are all accepted, and a space may stand in for the <c>T</c>.
     /// </summary>
     /// <returns>True when <paramref name="text"/> was a well-formed date in this calendar.</returns>
     public bool TryParse(string? text, out GameDate date)

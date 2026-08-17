@@ -39,9 +39,9 @@ Below a minute sit the units combat runs on:
 | Unit | Holds | Ticks |
 | --- | --- | --- |
 | Tick | — | 1 |
-| Turn | 10 ticks | 10 |
-| Round | 100 turns | 1,000 |
-| Minute | 10 rounds | 10,000 |
+| Turn | 100 ticks | 100 |
+| Round | 100 turns | 10,000 |
+| Minute | 10 rounds | 100,000 |
 
 Above a minute, the calendar decides: `MinutesInHour`, `HoursInDay`, and a year made of months that
 tile a fixed number of days.
@@ -142,12 +142,12 @@ Two rules are worth knowing:
 | `d` | `14 Frostwane 1492` |
 | `D` | `Starsday, 14 Frostwane 1492` |
 | `t` | `6:30` |
-| `T` | `6:30:07:42:3` |
+| `T` | `6:30:07:42:03` |
 | `f` | `14 Frostwane 1492 6:30` |
 | `F` | `Starsday, 14 Frostwane 1492 6:30` — the default |
 | `y` | `Frostwane 1492` |
 | `n` | `1492-01-14` |
-| `o` | `1492-01-14T06:30:07:42:3` — round-trips through `TryParse` |
+| `o` | `1492-01-14T06:30:07:42:03` — round-trips through `TryParse` |
 
 Custom patterns are built from specifiers, and anything unrecognised is copied through:
 
@@ -160,7 +160,7 @@ Custom patterns are built from specifiers, and anything unrecognised is copied t
 | `HH` `H` `mm` `m` | Hour and minute |
 | `RR` `R` | Round of the minute |
 | `TT` `T` | Turn of the round |
-| `K` | Tick of the turn |
+| `KK` `K` | Tick of the turn |
 
 Escape a specifier with `\`, wrap literal text in `'` or `"`, and prefix a lone specifier with `%` so
 it is not read as a standard format. The literal `T` in the round-trip pattern is written `\T`.

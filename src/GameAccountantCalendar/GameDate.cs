@@ -10,7 +10,7 @@ namespace GameAccountantCalendar;
 /// <para>
 /// A date carries combat-scale precision as well as calendar-scale: below the minute sit the
 /// <see cref="Round"/> (10 to a minute), the <see cref="Turn"/> (100 to a round) and the
-/// <see cref="Tick"/> (10 to a turn).
+/// <see cref="Tick"/> (100 to a turn).
 /// </para>
 /// <para>
 /// Dates are only comparable within one calendar. Comparing dates from two different calendars throws,
@@ -66,7 +66,7 @@ public readonly struct GameDate : IEquatable<GameDate>, IComparable<GameDate>, I
     /// <summary>Turn of the round, 0 to 99.</summary>
     public int Turn => (int)(Ticks % GameCalendar.TicksPerRound / GameCalendar.TicksPerTurn);
 
-    /// <summary>Tick of the turn, 0 to 9.</summary>
+    /// <summary>Tick of the turn, 0 to 99.</summary>
     public int Tick => (int)(Ticks % GameCalendar.TicksPerTurn);
 
     /// <summary>Ticks elapsed since midnight.</summary>
@@ -234,7 +234,7 @@ public readonly struct GameDate : IEquatable<GameDate>, IComparable<GameDate>, I
     /// <summary>Renders the date with a standard or custom format string.</summary>
     /// <param name="format">
     /// A standard specifier (<c>d D t T f F n o y</c>) or a custom pattern built from
-    /// <c>yyyy MMMM MM dddd dd DDD HH mm RR TT K</c>. Null or empty means <c>"F"</c>.
+    /// <c>yyyy MMMM MM dddd dd DDD HH mm RR TT KK</c>. Null or empty means <c>"F"</c>.
     /// </param>
     public string ToString(string? format) => ToString(format, null);
 

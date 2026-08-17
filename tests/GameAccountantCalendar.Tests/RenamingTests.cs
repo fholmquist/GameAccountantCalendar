@@ -195,6 +195,46 @@ public class RenamingTests
     }
 
     [Fact]
+    public void TheLabelCanBeChangedOnItsOwn()
+    {
+        var renamed = Calendar.WithLabel("Revolutionary Calendar");
+
+        Assert.Equal("Revolutionary Calendar", renamed.Label);
+        Assert.Equal("Revolutionary Calendar", renamed.ToString());
+        Assert.Equal("Common Reckoning", Calendar.Label);
+
+        Assert.Equal(Calendar.Id, renamed.Id);
+        Assert.Equal(Calendar.Description, renamed.Description);
+        Assert.Equal(Calendar.DaysInYear, renamed.DaysInYear);
+        Assert.Equal("Frostwane", renamed.Month(1).Name);
+        Assert.Equal(Calendar.Date(1999, 1, 14).Ticks, renamed.Date(1999, 1, 14).Ticks);
+    }
+
+    [Fact]
+    public void AllThreeRenamingsChainTogether()
+    {
+        var renamed = Calendar
+            .WithLabel("Revolutionary Calendar")
+            .WithMonthNames(TwelveMonths)
+            .WithWeekdayNames(SevenDays);
+
+        Assert.Equal("Revolutionary Calendar", renamed.Label);
+        Assert.Equal("Nivose", renamed.Month(1).Name);
+        Assert.Equal("Primus", renamed.Date(1, 1, 1).Weekday?.Name);
+        Assert.Equal(Calendar.Id, renamed.Id);
+        Assert.Equal(Calendar.DaysInYear, renamed.DaysInYear);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ABlankLabelIsRefused(string label)
+    {
+        var error = Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithLabel(label));
+        Assert.Contains("must have a label", error.Message);
+    }
+
+    [Fact]
     public void RenamingLeavesTheOriginalAlone()
     {
         var renamed = Calendar.WithMonthNames(TwelveMonths);

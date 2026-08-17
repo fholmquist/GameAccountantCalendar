@@ -334,6 +334,13 @@ public sealed class GameCalendar
     }
 
     /// <summary>
+    /// Returns a copy of this calendar under a new label, with the year underneath untouched.
+    /// </summary>
+    /// <param name="label">The new short name for the calendar (<c>label</c>).</param>
+    /// <exception cref="CalendarValidationException"><paramref name="label"/> is blank.</exception>
+    public GameCalendar WithLabel(string label) => WithParts(label, _months, _weekdays);
+
+    /// <summary>
     /// Returns a copy of this calendar with its months renamed. The year's shape is untouched — the
     /// same day ranges, festivals, weekday pins, start year and identity — so a tick means the same
     /// moment on both calendars.
@@ -380,7 +387,7 @@ public sealed class GameCalendar
                 month.Number, name, month.StartDay, month.EndDay, month.AltName, month.IsHoliday, month.StartingWeekday);
         }
 
-        return WithParts(renamed, _weekdays);
+        return WithParts(Label, renamed, _weekdays);
     }
 
     /// <summary>
@@ -407,12 +414,12 @@ public sealed class GameCalendar
         for (int i = 0; i < names.Length; i++)
             renamed[i] = new CalendarWeekday(_weekdays[i].Number, names[i]);
 
-        return WithParts(_months, renamed);
+        return WithParts(Label, _months, renamed);
     }
 
-    /// <summary>Rebuilds this calendar around new months or weekdays, keeping everything else.</summary>
-    private GameCalendar WithParts(CalendarMonth[] months, CalendarWeekday[] weekdays) => new(
-        Label,
+    /// <summary>Rebuilds this calendar around a new label, months or weekdays, keeping everything else.</summary>
+    private GameCalendar WithParts(string label, CalendarMonth[] months, CalendarWeekday[] weekdays) => new(
+        label,
         months,
         weekdays,
         HoursInDay,

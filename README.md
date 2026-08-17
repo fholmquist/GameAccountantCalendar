@@ -81,6 +81,7 @@ ranges, festivals, weekday pins, start year and identity. Only the words change.
 
 ```csharp
 var revolutionary = SampleCalendars.CommonReckoning
+    .WithLabel("Revolutionary Calendar")
     .WithMonthNames("Nivose", "Pluviose", "Ventose", "Germinal", "Floreal", "Prairial",
                     "Messidor", "Thermidor", "Fructidor", "Vendemiaire", "Brumaire", "Frimaire")
     .WithWeekdayNames("Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus");
@@ -92,7 +93,8 @@ var revolutionary = SampleCalendars.CommonReckoning
 - **`Months.Count` names** (17 for the sample) renames every entry, festivals included.
 
 Anything else throws `CalendarValidationException` naming both counts it would have accepted. Where a
-calendar has no festivals the two coincide. `WithWeekdayNames` takes exactly `WeekLength` names.
+calendar has no festivals the two coincide. `WithWeekdayNames` takes exactly `WeekLength` names, and
+`WithLabel` takes any non-blank string.
 
 Dates don't carry across on their own, because a `GameDate` belongs to the exact calendar that built
 it. A tick means the same moment on both, so move one over with `renamed.FromTicks(date.Ticks)`.

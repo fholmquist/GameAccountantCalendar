@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsAotCompatible>true</IsAotCompatible>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>GameAccountantCalendar</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Fletcher Holmquist</Authors>
+    <Description>Dates, arithmetic and formatting for fantasy game calendars with arbitrary months, week lengths and hours in a day.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>calendar;rpg;dnd;tabletop;fantasy</PackageTags>
+  </PropertyGroup>
+
+</Project>

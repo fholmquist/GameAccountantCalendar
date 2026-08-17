@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GameAccountantCalendar/GameAccountantCalendar.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GameAccountantCalendar.Tests/GameAccountantCalendar.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -96,16 +96,22 @@ var revolutionary = SampleCalendars.CommonReckoning
 | `WithFestivalNames` | `FestivalCount` names (5 above) | the ordinary months |
 | `WithFestivalAltNames` | `FestivalCount` secondary names | the primary names, the months |
 | `WithWeekdayNames` | `WeekLength` names (7 above) | months and festivals |
+| `WithWeekdayAltNames` | `WeekLength` secondary names | the primary names, months and festivals |
 
 Every one of these is independent and order doesn't matter — no call disturbs what another set. The
 two `MonthNames` methods also accept `Months.Count` entries (17 for the sample), which covers every
 entry in year order with the festivals in their places; they tell the two forms apart by array
 length.
 
-Secondary names are the `alt_name` column: what `MMM` renders and what `FindMonth` also matches on.
-They are optional, so the alt-name methods take `string?[]` and a null or blank entry **clears** that
-month's secondary name rather than setting an empty one — after which `MMM` falls back to the first
-three letters of the primary name.
+Secondary names are what `MMM` and `ddd` render, and what `FindMonth` and `FindWeekday` also match
+on. They are optional, so the alt-name methods take `string?[]` and a null or blank entry **clears**
+that entry's secondary name rather than setting an empty one — after which `MMM` and `ddd` fall back
+to the first three letters of the primary name.
+
+For months this is the `alt_name` column. **Weekdays have no such column** — `gt_weekday` holds only
+`day_num` and `day_name` — so `CalendarWeekday.AltName` is the library's own, alongside `start_year`,
+`epoch_weekday` and `holidays_break_week_cycle`. It round-trips through the JSON but has nothing to
+map to in the database.
 
 Any wrong count throws `CalendarValidationException` naming the counts it would have accepted. Where
 a calendar has no festivals, `MonthCount` and `Months.Count` coincide and the festival methods take

@@ -25,8 +25,8 @@ public class CalendarJsonTests
             original.Months.Select(m => (m.Number, m.Name, m.AltName, m.IsHoliday, m.StartDay, m.EndDay)),
             restored.Months.Select(m => (m.Number, m.Name, m.AltName, m.IsHoliday, m.StartDay, m.EndDay)));
         Assert.Equal(
-            original.Weekdays.Select(w => (w.Number, w.Name)),
-            restored.Weekdays.Select(w => (w.Number, w.Name)));
+            original.Weekdays.Select(w => (w.Number, w.Name, w.AltName)),
+            restored.Weekdays.Select(w => (w.Number, w.Name, w.AltName)));
     }
 
     [Fact]
@@ -113,6 +113,20 @@ public class CalendarJsonTests
         Assert.Equal(1_000, calendar.MinutesInDay);
         Assert.Null(calendar.Date(700, 2, 1).Weekday);
         Assert.Equal(0UL, calendar.Date(700, 1, 1).Ticks);
+    }
+
+    [Fact]
+    public void WeekdayAltNamesSurviveARoundTrip()
+    {
+        var original = SampleCalendars.CommonReckoning
+            .WithWeekdayAltNames("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+
+        var restored = CalendarJson.Deserialize(CalendarJson.Serialize(original));
+
+        Assert.Equal(
+            new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" },
+            restored.Weekdays.Select(w => w.AltName));
+        Assert.Equal("Mon", restored.Date(1999, 1, 14).ToString("ddd"));
     }
 
     [Fact]

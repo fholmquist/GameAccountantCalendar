@@ -479,20 +479,47 @@ public sealed class GameCalendar
     public GameCalendar WithWeekdayNames(params string[] names)
     {
         ArgumentNullException.ThrowIfNull(names);
+        RequireWeekdayCount(names.Length, "names");
+        return RemapWeekdays(names, static (weekday, name) => weekday.WithName(name!));
+    }
 
-        if (names.Length != _weekdays.Length)
-        {
-            throw new CalendarValidationException(
-                _weekdays.Length == 0
-                    ? $"Calendar '{Label}' has no week, so it takes no weekday names, but {names.Length} were given."
-                    : $"Calendar '{Label}' has a week of {_weekdays.Length} days, but {names.Length} names were given.");
-        }
+    /// <summary>
+    /// Returns a copy of this calendar with its weekdays' secondary names replaced — the
+    /// <see cref="CalendarWeekday.AltName"/> that <c>ddd</c> renders and <see cref="FindWeekday"/>
+    /// also matches on. The primary names and the cycle's alignment are untouched.
+    /// </summary>
+    /// <param name="altNames">
+    /// One secondary name per weekday, in order. Must match <see cref="WeekLength"/> exactly. A null or
+    /// blank entry clears that weekday's secondary name, after which <c>ddd</c> goes back to shortening
+    /// the primary name.
+    /// </param>
+    /// <exception cref="CalendarValidationException">The wrong number of names was given.</exception>
+    public GameCalendar WithWeekdayAltNames(params string?[] altNames)
+    {
+        ArgumentNullException.ThrowIfNull(altNames);
+        RequireWeekdayCount(altNames.Length, "alternate names");
+        return RemapWeekdays(altNames, static (weekday, alt) => weekday.WithAltName(alt));
+    }
 
-        var renamed = new CalendarWeekday[_weekdays.Length];
-        for (int i = 0; i < names.Length; i++)
-            renamed[i] = new CalendarWeekday(_weekdays[i].Number, names[i]);
+    private void RequireWeekdayCount(int given, string what)
+    {
+        if (given == _weekdays.Length)
+            return;
 
-        return WithParts(Label, _months, renamed);
+        throw new CalendarValidationException(
+            _weekdays.Length == 0
+                ? $"Calendar '{Label}' has no week, so it takes no weekday {what}, but {given} were given."
+                : $"Calendar '{Label}' has a week of {_weekdays.Length} days, but {given} {what} were given.");
+    }
+
+    /// <summary>Walks the week, handing each day the next value in turn.</summary>
+    private GameCalendar RemapWeekdays(string?[] values, Func<CalendarWeekday, string?, CalendarWeekday> apply)
+    {
+        var remapped = new CalendarWeekday[_weekdays.Length];
+        for (int i = 0; i < values.Length; i++)
+            remapped[i] = apply(_weekdays[i], values[i]);
+
+        return WithParts(Label, _months, remapped);
     }
 
     /// <summary>Rebuilds this calendar around a new label, months or weekdays, keeping everything else.</summary>
@@ -532,11 +559,13 @@ public sealed class GameCalendar
             string.Equals(m.AltName, name, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>Finds a weekday by name, or null if there is none.</summary>
+    /// <summary>Finds a weekday by name, matching <see cref="CalendarWeekday.AltName"/> too, or null if there is none.</summary>
     public CalendarWeekday? FindWeekday(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
-        return _weekdays.FirstOrDefault(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase));
+        return _weekdays.FirstOrDefault(w =>
+            string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(w.AltName, name, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>A span of whole ticks, the smallest unit there is.</summary>

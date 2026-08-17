@@ -108,4 +108,8 @@ public sealed class WeekdayDocument
     /// <summary><c>gt_weekday.day_name</c></summary>
     [JsonPropertyName("day_name")]
     public string DayName { get; set; } = string.Empty;
+
+    /// <summary>Secondary weekday name. Not a database column; <c>gt_weekday</c> has no <c>alt_name</c>.</summary>
+    [JsonPropertyName("alt_name")]
+    public string? AltName { get; set; }
 }

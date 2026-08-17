@@ -445,6 +445,113 @@ public class RenamingTests
         Assert.Equal("Alt", new CalendarMonth(1, "Only", 1, 30, altName: "Alt").AltName);
     }
 
+    private static readonly string?[] SevenShortDays =
+    [
+        "Sun", "Moo", "Fir", "Wat", "Woo", "Iro", "Sta",
+    ];
+
+    [Fact]
+    public void WeekdayAltNamesCanBeReplaced()
+    {
+        var renamed = Calendar.WithWeekdayAltNames("Sn", "Mn", "Fr", "Wt", "Wd", "In", "St");
+
+        Assert.Equal(
+            new[] { "Sn", "Mn", "Fr", "Wt", "Wd", "In", "St" },
+            renamed.Weekdays.Select(w => w.AltName));
+
+        // The primary names and the cycle are untouched.
+        Assert.Equal(
+            Calendar.Weekdays.Select(w => (w.Number, w.Name)),
+            renamed.Weekdays.Select(w => (w.Number, w.Name)));
+        Assert.Equal("Moonsday", renamed.Date(1999, 1, 14).Weekday?.Name);
+    }
+
+    [Fact]
+    public void TheWeekdayAltNameIsWhatDddRenders()
+    {
+        // With none set, ddd shortens the primary name.
+        Assert.Equal("Moo", Calendar.Date(1999, 1, 14).ToString("ddd"));
+
+        var renamed = Calendar.WithWeekdayAltNames("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+
+        Assert.Equal("Mon", renamed.Date(1999, 1, 14).ToString("ddd"));
+        Assert.Equal("Moonsday", renamed.Date(1999, 1, 14).ToString("dddd"));
+    }
+
+    [Fact]
+    public void ClearingAWeekdayAltNameSendsDddBackToShortening()
+    {
+        var renamed = Calendar
+            .WithWeekdayAltNames(SevenShortDays)
+            .WithWeekdayAltNames(new string?[7]);
+
+        Assert.All(renamed.Weekdays, w => Assert.Null(w.AltName));
+        Assert.Equal("Moo", renamed.Date(1999, 1, 14).ToString("ddd"));
+    }
+
+    [Fact]
+    public void BlankWeekdayAltNamesClearRatherThanSetAnEmptyOne()
+    {
+        var renamed = Calendar.WithWeekdayAltNames("", "  ", null, "Wt", null, null, null);
+
+        Assert.Null(renamed.Weekdays[0].AltName);
+        Assert.Null(renamed.Weekdays[1].AltName);
+        Assert.Equal("Wt", renamed.Weekdays[3].AltName);
+        Assert.Null(new CalendarWeekday(1, "Only", altName: "   ").AltName);
+    }
+
+    [Fact]
+    public void WeekdaysAreFoundByTheirAltNames()
+    {
+        var renamed = Calendar.WithWeekdayAltNames("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+
+        Assert.Equal(2, renamed.FindWeekday("Mon")?.Number);
+        Assert.Equal(2, renamed.FindWeekday("moonsday")?.Number);
+        Assert.Null(renamed.FindWeekday("Blursday"));
+    }
+
+    [Fact]
+    public void WeekdayNamesAndAltNamesAreReplacedIndependently()
+    {
+        var renamed = Calendar
+            .WithWeekdayNames(SevenDays)
+            .WithWeekdayAltNames(SevenShortDays);
+
+        Assert.Equal("Secundus", renamed.Weekdays[1].Name);
+        Assert.Equal("Moo", renamed.Weekdays[1].AltName);
+
+        var reversed = Calendar
+            .WithWeekdayAltNames(SevenShortDays)
+            .WithWeekdayNames(SevenDays);
+
+        Assert.Equal(
+            renamed.Weekdays.Select(w => (w.Name, w.AltName)),
+            reversed.Weekdays.Select(w => (w.Name, w.AltName)));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(6)]
+    [InlineData(8)]
+    public void TheWrongNumberOfWeekdayAltNamesIsRefused(int count)
+    {
+        var names = Enumerable.Range(1, count).Select(i => (string?)$"A{i}").ToArray();
+
+        var error = Assert.Throws<CalendarValidationException>(() => _ = Calendar.WithWeekdayAltNames(names));
+        Assert.Contains("7", error.Message);
+    }
+
+    [Fact]
+    public void ACalendarWithNoWeekTakesNoWeekdayAltNames()
+    {
+        var weekless = new GameCalendarBuilder("Weekless").AddMonth("Only", 10).Build();
+
+        Assert.Equal(0, weekless.WithWeekdayAltNames().WeekLength);
+
+        var error = Assert.Throws<CalendarValidationException>(() => _ = weekless.WithWeekdayAltNames("A"));
+        Assert.Contains("no week", error.Message);
+    }
+
     [Fact]
     public void TheLabelCanBeChangedOnItsOwn()
     {

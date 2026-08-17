@@ -29,7 +29,7 @@ namespace GameAccountantCalendar;
 /// <list type="table">
 ///   <item><term>yyyy y</term><description>year, zero-padded to the number of <c>y</c>s</description></item>
 ///   <item><term>MMMM MMM MM M</term><description>month name, alternate name, padded number, number</description></item>
-///   <item><term>dddd ddd dd d</term><description>weekday name, short weekday name, padded day, day</description></item>
+///   <item><term>dddd ddd dd d</term><description>weekday name, alternate name, padded day, day</description></item>
 ///   <item><term>DDD D</term><description>day of the year, padded and plain</description></item>
 ///   <item><term>HH H mm m</term><description>hour and minute, padded and plain</description></item>
 ///   <item><term>RR R</term><description>round of the minute, 0 to 9</description></item>
@@ -166,7 +166,7 @@ public static class GameDateFormatter
                     text.Append(run switch
                     {
                         >= 4 => weekday?.Name ?? string.Empty,
-                        3 => weekday is null ? string.Empty : Shorten(weekday.Name),
+                        3 => weekday is null ? string.Empty : weekday.AltName ?? Shorten(weekday.Name),
                         _ => Number(parts.Day, run, culture),
                     });
                     break;

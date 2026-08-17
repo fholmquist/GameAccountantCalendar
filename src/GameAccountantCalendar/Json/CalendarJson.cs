@@ -71,6 +71,7 @@ public static class CalendarJson
             {
                 DayNum = w.Number,
                 DayName = w.Name,
+                AltName = w.AltName,
             })],
         };
     }
@@ -82,7 +83,7 @@ public static class CalendarJson
         ArgumentNullException.ThrowIfNull(document);
 
         var weekdays = document.Weekdays
-            .Select(w => new CalendarWeekday(w.DayNum, w.DayName))
+            .Select(w => new CalendarWeekday(w.DayNum, w.DayName, w.AltName))
             .ToList();
 
         if (document.WeekLength is int declared && declared != weekdays.Count)
